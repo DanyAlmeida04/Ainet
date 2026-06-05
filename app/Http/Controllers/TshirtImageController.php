@@ -1,0 +1,44 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\TshirtImage;
+use App\Models\Category;
+use Illuminate\Http\Request;
+
+class TshirtImageController extends Controller
+{
+    /**
+     * Exibe o catálogo público de t-shirts.
+     */
+    public function index(Request $request)
+    {
+        // 1. Iniciamos a query filtrando apenas pelas imagens públicas do catálogo (customer_id é null)
+        // Usamos o select() para trazer apenas as colunas necessárias e otimizar a performance
+        $query = TshirtImage::select('id', 'name', 'description', 'image_url', 'category_id')
+            ->whereNull('customer_id');
+
+        // 2. Se o utilizador pesquisar por nome ou descrição (Requisito G2 do enunciado)
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        // 3. Se o utilizador filtrar por categoria
+        if ($request->filled('category')) {
+            $query->where('category_id', $request->category);
+        }
+
+        // 4. Executa a query trazendo os resultados paginados (ex: 12 t-shirts por página)
+        $tshirtImages = $query->paginate(12)->withQueryString();
+
+        // 5. Vamos também buscar as categorias existentes para preencher a lista de filtros no ecrã
+        $categories = Category::select('id', 'name')->orderBy('name')->get();
+
+        // 6. Envia os dados para a vista Blade que vamos criar a seguir
+        return view('catalog.index', compact('tshirtImages', 'categories'));
+    }
+}
