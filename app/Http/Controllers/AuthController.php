@@ -62,7 +62,11 @@ class AuthController extends Controller
             'password' => 'required|string|min:8|confirmed',
             'nif' => 'nullable|digits:9', // Opcional no registo, mas se meter tem de ter 9 dígitos
             'address' => 'nullable|string|max:255',
+            'gender' => 'nullable|in:M,F',
         ]);
+
+        // Determine gender default if not provided
+        $gender = $request->input('gender', 'M');
 
         // Criar o registo na tabela 'users'
         $user = User::create([
@@ -71,6 +75,8 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
             'user_type' => 'C', // 'C' de Cliente por defeito no registo público
             'blocked' => false,
+            'gender' => $gender,
+            'photo_url' => 'anonymous.png',
         ]);
 
         // Criar o registo correspondente na tabela 'customers' (Relação 1-para-1)
@@ -95,5 +101,56 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('catalog.index');
+    }
+
+    // --- Profile & Password management ---
+    public function showProfile()
+    {
+        $user = Auth::user()->load('customer');
+        return view('auth.profile', compact('user'));
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $user = Auth::user();
+
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'nif' => 'nullable|digits:9',
+            'address' => 'nullable|string|max:255',
+        ]);
+
+        // Update user and customer
+        $user->update(['name' => $data['name']]);
+        $user->customer()->update([
+            'nif' => $data['nif'] ?? null,
+            'address' => $data['address'] ?? null,
+        ]);
+
+        return back()->with('success', 'Perfil atualizado com sucesso.');
+    }
+
+    public function showChangePassword()
+    {
+        return view('auth.password');
+    }
+
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $user = Auth::user();
+
+        if (! Hash::check($request->current_password, $user->password)) {
+            return back()->withErrors(['current_password' => 'A password atual não corresponde.']);
+        }
+
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        return back()->with('success', 'Password alterada com sucesso.');
     }
 }

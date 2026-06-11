@@ -11,6 +11,9 @@ class Customer extends Model
     use HasFactory, SoftDeletes; // Ativa os timestamps automáticos e o soft delete
 
     public $incrementing = false; // Como diz no enunciado, o ID vem do User
+    // A tabela customers não define created_at/updated_at nas migrations
+    // portanto desactivar os timestamps automáticos no modelo.
+    public $timestamps = false;
 
     protected $fillable = [
         'id',

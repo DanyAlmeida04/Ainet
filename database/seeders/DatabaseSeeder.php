@@ -30,7 +30,13 @@ class DatabaseSeeder extends Seeder
         $this->command->info("-----------------------------------------------");
 
         self::$startDate = Carbon::now()->subMonths(self::$startDateMonthsAgo);
-        self::$seedLanguage = $this->command->choice('What is the main language of the data?', ['pt_PT', 'en_US'], 0);
+        // Try to ask the question interactively. If that fails (non-interactive
+        // environment or missing console input) fall back to the default.
+        try {
+            self::$seedLanguage = $this->command->choice('What is the main language of the data?', ['pt_PT', 'en_US'], 0);
+        } catch (\Throwable $e) {
+            self::$seedLanguage = self::$seedLanguage ?? 'pt_PT';
+        }
 
         if (DB::getDriverName() === 'sqlite') {
             DB::statement('PRAGMA foreign_keys = OFF');
