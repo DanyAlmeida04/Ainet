@@ -4,7 +4,7 @@
     <div class="container mx-auto px-4 py-8">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div class="relative">
-                <img id="tshirt-base" src="{{ asset('storage/tshirt_colors/white.png') }}" alt="T-shirt Base" class="w-full rounded-lg shadow-md">
+                <img id="tshirt-base" src="{{ asset('storage/tshirt_base/plain_white.png') }}" alt="T-shirt Base" class="w-full rounded-lg shadow-md">
                 <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-1/3">
                     <img src="{{ asset('storage/tshirt_images/' . $tshirtImage->image_url) }}" alt="{{ $tshirtImage->name }}" class="w-full h-auto">
                 </div>
@@ -21,17 +21,14 @@
 
                         <div class="mb-4">
                             <label class="block text-gray-700 font-semibold mb-2">Cor:</label>
-                            <div class="flex space-x-2">
+                            <div class="flex flex-wrap gap-2">
                                 @foreach($colors as $color)
-                                    <div class="color-swatch-wrapper">
-                                        <div
-                                            class="color-swatch w-8 h-8 rounded-full cursor-pointer border-2 border-transparent transition-transform duration-150 transform hover:scale-110"
-                                            style="background-color: {{ $color->code }};"
-                                            data-color-name="{{ $color->name }}"
-                                            data-color-code="{{ $color->code }}"
-                                            title="{{ $color->name }}"
-                                        ></div>
-                                    </div>
+                                    <div
+                                        class="color-swatch w-8 h-8 rounded-full cursor-pointer border-2 border-transparent transition-transform duration-150 transform hover:scale-110"
+                                        style="background-color: {{ $color->code }};"
+                                        data-color-code="{{ $color->code }}"
+                                        title="{{ $color->name }}"
+                                    ></div>
                                 @endforeach
                             </div>
                         </div>
@@ -70,25 +67,46 @@
         const tshirtBase = document.getElementById('tshirt-base');
         const selectedColorInput = document.getElementById('selected-color');
 
-        // Set initial selected state
-        const initialSwatch = document.querySelector('.color-swatch[data-color-name="white"]');
-        if (initialSwatch) {
-            initialSwatch.classList.add('border-blue-500', 'scale-110');
-            initialSwatch.classList.remove('border-transparent');
+        function selectSwatch(swatch) {
+            if (!swatch) return;
+
+            // Update visual state
+            swatches.forEach(s => {
+                s.classList.remove('border-blue-500', 'scale-110');
+                s.classList.add('border-transparent');
+            });
+            swatch.classList.remove('border-transparent');
+            swatch.classList.add('border-blue-500', 'scale-110');
+
+            // Update hidden input
+            selectedColorInput.value = swatch.dataset.colorCode;
         }
 
+        // --- Initial State ---
+        // Find the "white" swatch and select it by default.
+        let initialSwatch = Array.from(swatches).find(s => s.title.toLowerCase() === 'white' || s.title.toLowerCase() === 'branco');
+        if (initialSwatch) {
+            selectSwatch(initialSwatch);
+            tshirtBase.src = "{{ asset('storage/tshirt_base/plain_white.png') }}";
+            selectedColorInput.value = initialSwatch.dataset.colorCode;
+        }
+
+        // --- Event Listener ---
         swatches.forEach(swatch => {
             swatch.addEventListener('click', function() {
-                // Update hidden input
-                selectedColorInput.value = this.dataset.colorCode;
+                const colorCode = this.dataset.colorCode;
+                const colorName = this.title.toLowerCase();
+                let imageUrl;
 
-                // Update T-shirt image
-                const colorName = this.dataset.colorName.toLowerCase();
-                tshirtBase.src = `{{ asset('storage/tshirt_colors') }}/${colorName}.png`;
+                if (colorName === 'white' || colorName === 'branco') {
+                    imageUrl = "{{ asset('storage/tshirt_base/plain_white.png') }}";
+                } else {
+                    const filename = colorCode.substring(1);
+                    imageUrl = `{{ asset('storage/tshirt_base') }}/${filename}.jpg`;
+                }
 
-                // Update selected visual state
-                swatches.forEach(s => s.classList.replace('border-blue-500', 'border-transparent'));
-                this.classList.replace('border-transparent', 'border-blue-500');
+                tshirtBase.src = imageUrl;
+                selectSwatch(this);
             });
         });
     });
