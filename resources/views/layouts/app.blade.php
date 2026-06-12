@@ -69,9 +69,10 @@
             <a href="{{ route('cart.index') }}" class="hover:underline text-white">Carrinho</a>
 
             @auth
-                @can('manage-users')
+                @php $currentUser = Auth::user(); @endphp
+                @if($currentUser && $currentUser->user_type === 'A' && !($currentUser->blocked ?? false))
                     <a href="{{ route('admin.dashboard') }}" class="bg-white text-blue-800 px-3 py-1 rounded font-semibold hover:bg-gray-100">Admin</a>
-                @endcan
+                @endif
 
                 <button id="themeToggle" title="Alternar tema claro/escuro" class="px-3 py-1 rounded bg-gray-200 text-sm">Modo</button>
 
@@ -135,6 +136,8 @@
         }
     });
 </script>
+
+@stack('scripts')
 
 </body>
 </html>

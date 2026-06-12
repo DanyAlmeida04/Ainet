@@ -30,17 +30,22 @@ class AuthServiceProvider extends ServiceProvider
 
         // Gates for quick checks
         Gate::define('manage-users', function ($user) {
-            return $user->user_type === 'A' && ! $user->blocked;
+            if ($user->blocked) return false;
+            $type = strtoupper((string) ($user->user_type ?? ''));
+            return in_array($type, ['A', 'ADMIN']);
         });
 
         Gate::define('process-orders', function ($user) {
-            return in_array($user->user_type, ['E', 'A']) && ! $user->blocked;
+            if ($user->blocked) return false;
+            $type = strtoupper((string) ($user->user_type ?? ''));
+            return in_array($type, ['E', 'EMPLOYEE', 'A', 'ADMIN']);
         });
 
         Gate::define('view-receipt', function ($user, $order) {
             // Admins and owning customers may view receipts
             if ($user->blocked) return false;
-            if ($user->user_type === 'A') return true;
+            $type = strtoupper((string) ($user->user_type ?? ''));
+            if (in_array($type, ['A', 'ADMIN'])) return true;
             return $order->customer_id === $user->id;
         });
     }

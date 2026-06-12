@@ -5,14 +5,22 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
-use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
+    protected function ensureAdmin()
+    {
+        $user = Auth::user();
+        if (! $user || $user->user_type !== 'A' || ($user->blocked ?? false)) {
+            abort(403, 'Ação restrita a administradores.');
+        }
+    }
+
     public function index()
     {
-        // Only admins via middleware, but double-check via gate
-        Gate::authorize('manage-users');
+        // Only admins via middleware, but double-check via explicit check
+        $this->ensureAdmin();
 
         $users = User::with('customer')->orderBy('user_type')->paginate(20);
         return view('admin.users.index', compact('users'));
@@ -20,13 +28,13 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
-        Gate::authorize('manage-users');
+        $this->ensureAdmin();
         return view('admin.users.edit', compact('user'));
     }
 
     public function update(Request $request, User $user)
     {
-        Gate::authorize('manage-users');
+        $this->ensureAdmin();
 
         $data = $request->validate([
             'name' => 'required|string|max:255',
@@ -47,7 +55,7 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
-        Gate::authorize('manage-users');
+        $this->ensureAdmin();
 
         // Soft delete if user has orders or tshirt images; otherwise force delete
         $hasOrders = $user->id && $user->customer && $user->customer->orders()->exists();
@@ -65,8 +73,8 @@ class UserController extends Controller
     // Block/unblock quick action
     public function toggleBlock(User $user)
     {
-        Gate::authorize('manage-users');
-        $user->blocked = ! $user->blocked;
+        $this->ensureAdmin();
+        $user->blocked = ! ($user->blocked ?? false);
         $user->save();
 
         return back()->with('success', $user->blocked ? 'Utilizador bloqueado.' : 'Utilizador desbloqueado.');

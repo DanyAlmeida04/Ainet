@@ -2,7 +2,12 @@
 
 @section('content')
 <div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold mb-6 text-center">Catálogo de T-Shirts</h1>
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-3xl font-bold">Catálogo de T-Shirts</h1>
+        @can('manage-users')
+            <a href="{{ route('admin.dashboard') }}" class="ml-4 px-4 py-2 bg-white text-blue-800 rounded shadow hover:bg-gray-100">Admin</a>
+        @endcan
+    </div>
 
     <div class="flex gap-6">
         {{-- Sidebar: lista de categorias --}}
