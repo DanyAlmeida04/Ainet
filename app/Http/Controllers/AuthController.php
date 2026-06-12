@@ -153,4 +153,11 @@ class AuthController extends Controller
 
         return back()->with('success', 'Password alterada com sucesso.');
     }
+
+    // New method to display user quick actions (for navbar)
+    public function quickProfile()
+    {
+        $user = Auth::user()->load('customer');
+        return view('auth.quick_profile', compact('user'));
+    }
 }

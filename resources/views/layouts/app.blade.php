@@ -16,7 +16,12 @@
             <a href="{{ route('cart.index') }}" class="hover:underline">Carrinho</a>
 
             @auth
-                <span class="text-sm bg-blue-700 px-3 py-1 rounded">Olá, {{ Auth::user()->name }}</span>
+                <div class="relative">
+                    <button id="profileToggle" class="text-sm bg-blue-700 px-3 py-1 rounded focus:outline-none">Olá, {{ Auth::user()->name }}</button>
+                    <div id="profileDropdown" class="absolute right-0 mt-2 hidden">
+                        @include('auth.quick_profile')
+                    </div>
+                </div>
 
                 <form action="{{ route('logout') }}" method="POST" class="inline">
                     @csrf
@@ -37,6 +42,24 @@
     <footer class="bg-gray-800 text-gray-400 py-6 text-center text-sm mt-12">
         &copy; {{ date('Y') }} FunShirt - Projecto de Aplicações para a Internet.
     </footer>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var btn = document.getElementById('profileToggle');
+        var dropdown = document.getElementById('profileDropdown');
+        if (btn) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                dropdown.classList.toggle('hidden');
+            });
+            document.addEventListener('click', function(e) {
+                if (!btn.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.classList.add('hidden');
+                }
+            });
+        }
+    });
+</script>
 
 </body>
 </html>

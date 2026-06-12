@@ -51,4 +51,8 @@ Route::middleware('auth')->group(function () {
     // Alterar palavra-passe
     Route::get('/password', [AuthController::class, 'showChangePassword'])->name('password.show');
     Route::post('/password', [AuthController::class, 'updatePassword'])->name('password.update');
+
+    // Orders (customer history) and resend receipt
+    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::post('/orders/{order}/resend-receipt', [OrderController::class, 'resendReceipt'])->name('orders.resendReceipt');
 });

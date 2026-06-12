@@ -136,4 +136,32 @@ class OrderController extends Controller
         return redirect()->route('cart.payment')->withErrors('Pagamento rejeitado pela plataforma externa: ' . $body)->withInput();
     }
 
+    // List orders for authenticated customer
+    public function index()
+    {
+        $orders = Order::where('customer_id', Auth::id())->with('items')->orderBy('date', 'desc')->paginate(12);
+        return view('orders.index', compact('orders'));
+    }
+
+    // Resend receipt email
+    public function resendReceipt(Request $request, Order $order)
+    {
+        if ($order->customer_id != Auth::id()) {
+            abort(403);
+        }
+
+        try {
+            $receiptFullPath = storage_path('app/' . $order->receipt_url);
+            if (file_exists($receiptFullPath)) {
+                Mail::raw('Segue novamente o seu recibo em anexo.', function ($message) use ($order, $receiptFullPath) {
+                    $message->to($order->customer->user->email ?? '')->subject('Recibo - Encomenda #' . $order->id)->attach($receiptFullPath);
+                });
+                return back()->with('success', 'Recibo reenviado.');
+            }
+            return back()->withErrors('Recibo não encontrado.');
+        } catch (\Throwable $e) {
+            Log::error('Erro ao reenviar recibo: ' . $e->getMessage());
+            return back()->withErrors('Erro ao reenviar recibo.');
+        }
+    }
 }
