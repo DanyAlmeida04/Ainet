@@ -182,9 +182,10 @@
             </button>
 
             @auth
-                @can('manage-users')
+                @php $currentUser = Auth::user(); @endphp
+                @if($currentUser && $currentUser->user_type === 'A' && !($currentUser->blocked ?? false))
                     <a href="{{ route('admin.dashboard') }}" class="bg-white text-blue-800 px-3 py-1 rounded font-semibold hover:bg-gray-100">Admin</a>
-                @endcan
+                @endif
 
                 <div class="relative">
                     <button id="profileToggle" class="text-sm bg-blue-700 text-white px-3 py-1 rounded focus:outline-none">Olá, {{ Auth::user()->name }}</button>
@@ -292,6 +293,8 @@
         }
     });
 </script>
+
+@stack('scripts')
 
 </body>
 </html>

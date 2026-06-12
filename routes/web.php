@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 // IMPORTANTE: Não te esqueças de importar o teu controlador aqui em cima!
 use App\Http\Controllers\TshirtImageController;
+use Illuminate\Support\Facades\Gate;
 
 Route::get('/', function () {
     return redirect()->route('catalog.index');
@@ -66,9 +67,12 @@ Route::middleware('auth')->group(function () {
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
+use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\PriceController;
 
-Route::middleware(['auth', 'is_admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', \App\Http\Middleware\IsAdmin::class])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/stats', [DashboardController::class, 'stats'])->name('dashboard.stats');
 
     // Users
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
@@ -76,6 +80,18 @@ Route::middleware(['auth', 'is_admin'])->prefix('admin')->name('admin.')->group(
     Route::post('/users/{user}', [UserController::class, 'update'])->name('users.update');
     Route::post('/users/{user}/toggle-block', [UserController::class, 'toggleBlock'])->name('users.toggleBlock');
     Route::post('/users/{user}/destroy', [UserController::class, 'destroy'])->name('users.destroy');
+
+    // Categories management (resource-like)
+    Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
+    Route::get('/categories/create', [CategoryController::class, 'create'])->name('categories.create');
+    Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
+    Route::get('/categories/{category}/edit', [CategoryController::class, 'edit'])->name('categories.edit');
+    Route::post('/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
+    Route::post('/categories/{category}/destroy', [CategoryController::class, 'destroy'])->name('categories.destroy');
+
+    // Prices management (single config)
+    Route::get('/prices/edit', [PriceController::class, 'edit'])->name('prices.edit');
+    Route::post('/prices', [PriceController::class, 'update'])->name('prices.update');
 
     // Orders management (reuse admin orders controller views)
     Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
@@ -87,3 +103,14 @@ Route::middleware(['auth', 'is_admin'])->prefix('admin')->name('admin.')->group(
     Route::post('/orders/{order}/generate-send', [AdminOrderController::class, 'generateAndSend'])->name('orders.generateSend');
     Route::get('/orders/{order}/preview', [AdminOrderController::class, 'preview'])->name('orders.preview');
 });
+
+// TEMP DEBUG: show current authenticated user and gate checks (remove after debugging)
+Route::get('/_admin_debug', function() {
+    if (! auth()->check()) return response()->json(['authenticated' => false]);
+    return response()->json([
+        'authenticated' => true,
+        'user' => auth()->user()->only(['id','name','email','user_type','blocked']),
+        'manage_users' => Gate::allows('manage-users'),
+        'process_orders' => Gate::allows('process-orders'),
+    ]);
+})->middleware('auth');
