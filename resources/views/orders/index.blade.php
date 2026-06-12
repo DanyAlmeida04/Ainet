@@ -20,11 +20,13 @@
                     </div>
                     <div class="flex gap-2">
                         @if($order->receipt_url)
-                            <a href="{{ url('storage/' . str_replace('private/', '', $order->receipt_url)) }}" class="bg-blue-600 text-white px-3 py-1 rounded">Ver Recibo</a>
+                            <a href="{{ route('orders.receipt', $order) }}" target="_blank" class="bg-blue-600 text-white px-3 py-1 rounded">Ver Recibo</a>
                             <form action="{{ route('orders.resendReceipt', $order) }}" method="POST">
                                 @csrf
                                 <button class="bg-gray-500 text-white px-3 py-1 rounded">Reenviar Recibo</button>
                             </form>
+                        @else
+                            <span class="text-sm text-gray-500">Recibo indisponível</span>
                         @endif
                     </div>
                 </div>

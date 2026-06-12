@@ -55,4 +55,7 @@ Route::middleware('auth')->group(function () {
     // Orders (customer history) and resend receipt
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     Route::post('/orders/{order}/resend-receipt', [OrderController::class, 'resendReceipt'])->name('orders.resendReceipt');
+
+    // Secure receipt download/view
+    Route::get('/orders/{order}/receipt', [OrderController::class, 'downloadReceipt'])->name('orders.receipt');
 });

@@ -4,10 +4,13 @@
     <meta charset="utf-8" />
     <title>Recibo - Encomenda #{{ $order->id }}</title>
     <style>
-        body { font-family: DejaVu Sans, sans-serif; }
+        /* Explicit styling for PDF rendering */
+        body { font-family: DejaVu Sans, sans-serif; color: #000000; font-size: 12px; }
         .header { text-align: center; margin-bottom: 20px; }
         .items { width: 100%; border-collapse: collapse; }
-        .items th, .items td { border: 1px solid #ccc; padding: 8px; }
+        .items th, .items td { border: 1px solid #ccc; padding: 8px; color: #000000; }
+        .items th { background: #f3f4f6; }
+        .right { text-align: right; }
     </style>
 </head>
 <body>
@@ -30,8 +33,8 @@
                 <th>Cor</th>
                 <th>Tamanho</th>
                 <th>Qtd</th>
-                <th>Unit</th>
-                <th>Subtotal</th>
+                <th class="right">Unit</th>
+                <th class="right">Subtotal</th>
             </tr>
         </thead>
         <tbody>
@@ -40,9 +43,9 @@
                     <td>{{ $it->tshirtImage->name ?? $it->tshirt_image_id }}</td>
                     <td>{{ $it->color_code }}</td>
                     <td>{{ $it->size }}</td>
-                    <td>{{ $it->qty }}</td>
-                    <td>€{{ number_format($it->unit_price, 2) }}</td>
-                    <td>€{{ number_format($it->sub_total, 2) }}</td>
+                    <td class="right">{{ $it->qty }}</td>
+                    <td class="right">€{{ number_format($it->unit_price, 2) }}</td>
+                    <td class="right">€{{ number_format($it->sub_total, 2) }}</td>
                 </tr>
             @endforeach
         </tbody>

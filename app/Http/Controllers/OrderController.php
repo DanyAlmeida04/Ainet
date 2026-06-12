@@ -98,12 +98,40 @@ class OrderController extends Controller
             }
 
             // Gerar recibo em PDF e guardar em storage/app/private/pdf_receipts
+            $order->load('items');
             $pdf = Pdf::loadView('orders.receipt', compact('order'));
+            // força papel A4 e render
+            try {
+                $pdf->setPaper('A4');
+            } catch (\Throwable $e) {
+                // alguns adaptadores podem não suportar setPaper; ignorar
+            }
+            $pdfOutput = $pdf->output();
             $receiptPath = 'private/pdf_receipts/receipt_' . $order->id . '.pdf';
-            \Illuminate\Support\Facades\Storage::put($receiptPath, $pdf->output());
+            \Illuminate\Support\Facades\Storage::makeDirectory('private/pdf_receipts');
+            \Illuminate\Support\Facades\Storage::put($receiptPath, $pdfOutput);
+
+            // Confirma se o ficheiro foi realmente gravado (debug/log se necessário)
+            $fullReceiptPath = storage_path('app/' . $receiptPath);
+            if (! file_exists($fullReceiptPath)) {
+                // tentativa de fallback para 'public' disk
+                \Illuminate\Support\Facades\Storage::disk('public')->makeDirectory('pdf_receipts');
+                $publicPath = 'pdf_receipts/receipt_' . $order->id . '.pdf';
+                \Illuminate\Support\Facades\Storage::disk('public')->put($publicPath, $pdfOutput);
+                $fullPublicPath = storage_path('app/public/' . $publicPath);
+
+                if (file_exists($fullPublicPath)) {
+                    $order->receipt_url = 'public/' . $publicPath;
+                } else {
+                    Log::warning('Recibo gerado mas ficheiro não encontrado após Storage::put: ' . $fullReceiptPath);
+                    // definir como null para indicar que não existe
+                    $order->receipt_url = null;
+                }
+            } else {
+                $order->receipt_url = $receiptPath;
+            }
 
             // Atualizar a encomenda com o caminho do recibo
-            $order->receipt_url = $receiptPath;
             $order->save();
 
             // Enviar email ao cliente com o recibo anexado
@@ -163,5 +191,59 @@ class OrderController extends Controller
             Log::error('Erro ao reenviar recibo: ' . $e->getMessage());
             return back()->withErrors('Erro ao reenviar recibo.');
         }
+    }
+
+    // Securely view/download receipt PDF (only owner)
+    public function downloadReceipt(Order $order)
+    {
+        // Ensure the authenticated user owns the order
+        if ($order->customer_id !== Auth::id()) {
+            abort(403);
+        }
+
+        if (empty($order->receipt_url)) {
+            return redirect()->route('orders.index')->withErrors('Recibo não disponível. Por favor, tente reenviar o recibo.');
+        }
+
+        // Try a few possible locations in storage/app in case files were written to a different subfolder
+        $pathsToTry = [
+            storage_path('app/' . $order->receipt_url),
+            storage_path('app/private/pdf_receipts/receipt_' . $order->id . '.pdf'),
+            storage_path('app/public/pdf_receipts/receipt_' . $order->id . '.pdf'),
+            storage_path('app/receipt_' . $order->id . '.pdf'),
+        ];
+
+        $found = null;
+        foreach ($pathsToTry as $p) {
+            if (file_exists($p)) {
+                $found = $p;
+                break;
+            }
+        }
+
+        if (! $found) {
+            return redirect()->route('orders.index')->withErrors('Ficheiro do recibo não encontrado. Pode reenviar o recibo.');
+        }
+
+        // If we found the file in a different place, update the saved receipt_url to the relative path under storage/app
+        $relative = ltrim(str_replace(storage_path('app'), '', $found), DIRECTORY_SEPARATOR);
+        if ($relative && $relative !== ltrim($order->receipt_url, '/')) {
+            $order->receipt_url = $relative;
+            $order->save();
+        }
+
+        // Serve the PDF inline in the browser
+        $content = @file_get_contents($found);
+        if ($content === false) {
+            return redirect()->route('orders.index')->withErrors('Não foi possível ler o ficheiro do recibo.');
+        }
+
+        $headers = [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="recibo_' . $order->id . '.pdf"',
+            'Content-Length' => strlen($content),
+        ];
+
+        return response($content, 200, $headers);
     }
 }
