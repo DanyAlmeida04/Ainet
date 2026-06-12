@@ -17,12 +17,30 @@ class UserController extends Controller
         }
     }
 
-    public function index()
+    public function index(Request $request)
     {
         // Only admins via middleware, but double-check via explicit check
         $this->ensureAdmin();
 
-        $users = User::with('customer')->orderBy('user_type')->paginate(20);
+        $q = User::with('customer');
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $q->where(function($query) use ($search) {
+                $query->where('name', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('user_type')) {
+            $q->where('user_type', $request->user_type);
+        }
+
+        if ($request->filled('blocked')) {
+            $q->where('blocked', $request->blocked);
+        }
+
+        $users = $q->orderBy('user_type')->paginate(20)->appends($request->query());
         return view('admin.users.index', compact('users'));
     }
 

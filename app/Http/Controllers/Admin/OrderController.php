@@ -31,7 +31,7 @@ class OrderController extends Controller
     {
         $this->ensureAdmin();
 
-        $q = Order::query()->with('items');
+        $q = Order::query()->with(['items', 'customer.user']);
 
         // standard filters
         if ($request->filled('status')) {
