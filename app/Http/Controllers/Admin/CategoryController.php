@@ -10,23 +10,24 @@ use Illuminate\Support\Facades\Storage;
 
 class CategoryController extends Controller
 {
+    public function __construct()
+    {
+        Gate::authorize('manage-categories');
+    }
+
     public function index()
     {
-        Gate::authorize('manage-users');
         $categories = Category::orderBy('name')->paginate(20);
         return view('admin.categories.index', compact('categories'));
     }
 
     public function create()
     {
-        Gate::authorize('manage-users');
         return view('admin.categories.create');
     }
 
     public function store(Request $request)
     {
-        Gate::authorize('manage-users');
-
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'image' => 'nullable|image|max:2048',
@@ -50,14 +51,11 @@ class CategoryController extends Controller
 
     public function edit(Category $category)
     {
-        Gate::authorize('manage-users');
         return view('admin.categories.edit', compact('category'));
     }
 
     public function update(Request $request, Category $category)
     {
-        Gate::authorize('manage-users');
-
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'image' => 'nullable|image|max:2048',
@@ -78,7 +76,6 @@ class CategoryController extends Controller
 
     public function destroy(Category $category)
     {
-        Gate::authorize('manage-users');
         $category->delete();
         return back()->with('success', 'Categoria removida.');
     }

@@ -11,6 +11,7 @@ Route::get('/', function () {
 
 // A tua nova rota do catálogo público:
 Route::get('/catalogo', [TshirtImageController::class, 'index'])->name('catalog.index');
+Route::get('/catalogo/{tshirtImage}', [TshirtImageController::class, 'show'])->name('catalog.show');
 
 // Carrinho (persistido na sessão) - acessível a todos
 use App\Http\Controllers\CartController;
@@ -91,12 +92,7 @@ Route::middleware(['auth', \App\Http\Middleware\IsAdmin::class])->prefix('admin'
     Route::post('/users/{user}/destroy', [UserController::class, 'destroy'])->name('users.destroy');
 
     // Categories management (resource-like)
-    Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
-    Route::get('/categories/create', [CategoryController::class, 'create'])->name('categories.create');
-    Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
-    Route::get('/categories/{category}/edit', [CategoryController::class, 'edit'])->name('categories.edit');
-    Route::post('/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
-    Route::post('/categories/{category}/destroy', [CategoryController::class, 'destroy'])->name('categories.destroy');
+    Route::resource('categories', CategoryController::class)->except(['show']);
 
     // Prices management (single config)
     Route::get('/prices/edit', [PriceController::class, 'edit'])->name('prices.edit');

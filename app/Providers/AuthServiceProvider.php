@@ -51,5 +51,17 @@ class AuthServiceProvider extends ServiceProvider
             if (in_array($type, ['A', 'ADMIN'])) return true;
             return $order->customer_id === $user->id;
         });
+
+        Gate::define('manage-categories', function ($user) {
+            if ($user->blocked) return false;
+            $type = strtoupper((string) ($user->user_type ?? ''));
+            return in_array($type, ['A', 'ADMIN']);
+        });
+
+        Gate::define('manage-prices', function ($user) {
+            if ($user->blocked) return false;
+            $type = strtoupper((string) ($user->user_type ?? ''));
+            return in_array($type, ['A', 'ADMIN']);
+        });
     }
 }

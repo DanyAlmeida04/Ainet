@@ -41,4 +41,12 @@ class TshirtImageController extends Controller
         // 6. Envia os dados para a vista Blade que vamos criar a seguir
         return view('catalog.index', compact('tshirtImages', 'categories'));
     }
+
+    /**
+     * Exibe os detalhes de uma t-shirt específica.
+     */
+    public function show(TshirtImage $tshirtImage)
+    {
+        return view('catalog.show', compact('tshirtImage'));
+    }
 }

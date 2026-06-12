@@ -1,142 +1,55 @@
-@extends('layouts.app') {{-- Assumindo que tens um layout base chamado app --}}
+@extends('layouts.app')
 
 @section('content')
 <div class="container mx-auto px-4 py-8">
-    <div class="flex items-center justify-between mb-6">
-        <h1 class="text-3xl font-bold">Catálogo de T-Shirts</h1>
-        @can('manage-users')
-            <a href="{{ route('admin.dashboard') }}" class="ml-4 px-4 py-2 bg-white text-blue-800 rounded shadow hover:bg-gray-100">Admin</a>
-        @endcan
-    </div>
-
-    <div class="flex gap-6">
-        {{-- Sidebar: lista de categorias --}}
-        <aside class="w-64 bg-white rounded shadow p-4">
-            <h2 class="font-semibold mb-3">Categorias</h2>
-            <ul class="space-y-2">
-                <li>
-                    <a href="{{ route('catalog.index') }}" class="block px-3 py-2 rounded transition {{ request('category') ? 'hover:bg-gray-100' : 'bg-blue-50 font-semibold' }}">Todas as categorias</a>
-                </li>
-                @foreach($categories as $cat)
-                    <li>
-                        <a href="{{ route('catalog.index', array_merge(request()->query(), ['category' => $cat->id])) }}"
-                           class="flex items-center gap-3 px-3 py-2 rounded transition hover:bg-gray-100 {{ request('category') == $cat->id ? 'bg-blue-50 font-semibold' : '' }}">
-                            {{-- Thumbnail: category image or first tshirt image -> fallback --}}
-                            @php
-                                $thumb = $cat->image_url ? asset('storage/categories/' . $cat->image_url) : null;
-                                if (! $thumb) {
-                                    $first = $cat->tshirtImages()->select('image_url')->first();
-                                    $thumb = $first ? asset('storage/tshirt_images/' . $first->image_url) : asset('storage/categories/default_category.png');
-                                }
-                            @endphp
-                            <img src="{{ $thumb }}" alt="{{ $cat->name }}" class="w-12 h-12 object-cover rounded">
-                            <div class="flex-1 text-sm">{{ $cat->name }}</div>
-                        </a>
-                    </li>
-                @endforeach
-            </ul>
-        </aside>
-
-        {{-- Main: pesquisa + grelha de produtos --}}
-        <main class="flex-1">
-            <form action="{{ route('catalog.index') }}" method="GET" class="mb-4 flex gap-2">
-                <input type="text" name="search" value="{{ request('search') }}" placeholder="Pesquisar por nome ou descrição..." class="border rounded px-4 py-2 flex-1">
-                @if(request('category'))
-                    <input type="hidden" name="category" value="{{ request('category') }}">
-                @endif
-                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded shadow-sm cursor-pointer transition hover:underline hover:bg-blue-700">Pesquisar</button>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div class="md:col-span-1">
+            <h2 class="text-xl font-bold mb-4">Filtros</h2>
+            <form method="GET" action="{{ route('catalog.index') }}">
+                <div class="mb-4">
+                    <label for="search" class="block text-sm font-medium text-gray-700">Pesquisa</label>
+                    <input type="text" name="search" id="search" value="{{ request('search') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                </div>
+                <div class="mb-4">
+                    <label for="category" class="block text-sm font-medium text-gray-700">Categoria</label>
+                    <select name="category" id="category" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                        <option value="">Todas</option>
+                        @foreach($categories as $category)
+                            <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>
+                                {{ $category->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md">Filtrar</button>
             </form>
+        </div>
 
-            <div class="mb-4 flex items-center justify-between">
-                <div class="text-lg font-semibold">{{ request('category') ? ($categories->firstWhere('id', request('category'))->name ?? 'Categoria') : 'Todas as T-Shirts' }}</div>
-                @if(request('category'))
-                    <a href="{{ route('catalog.index') }}" class="text-sm text-blue-600 hover:underline">Ver todas as categorias</a>
-                @endif
+        <div class="md:col-span-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                @forelse($tshirtImages as $image)
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden transform transition duration-300 hover:scale-105">
+                        <img src="{{ asset('storage/tshirt_images/' . $image->image_url) }}" alt="{{ $image->name }}" class="w-full h-64 object-cover">
+                        <div class="p-4">
+                            <h3 class="text-lg font-semibold">{{ $image->name }}</h3>
+                            <p class="text-gray-600 text-sm mb-4">{{ Str::limit($image->description, 50) }}</p>
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-lg">€{{-- A lógica de preço será adicionada aqui --}}</span>
+                                <a href="{{ route('catalog.show', $image) }}" class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm font-semibold hover:bg-blue-600">Ver detalhes</a>
+                            </div>
+                        </div>
+                    </div>
+                @empty
+                    <div class="col-span-full text-center py-12">
+                        <p class="text-gray-500 text-lg">Não foram encontradas t-shirts com os filtros selecionados.</p>
+                    </div>
+                @endforelse
             </div>
 
-            @if($tshirtImages->count() == 0)
-                <div class="bg-yellow-100 text-yellow-800 p-4 rounded">Nenhuma t-shirt encontrada.</div>
-            @else
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                    @foreach($tshirtImages as $image)
-                        <div class="border rounded-lg p-4 shadow hover:shadow-lg transition flex flex-col justify-between bg-white">
-                            <div>
-                                <img src="{{ asset('storage/tshirt_images/' . $image->image_url) }}" alt="{{ $image->name }}" class="w-full h-48 object-contain mb-4 rounded">
-                                <h2 class="font-bold text-lg mb-1">{{ $image->name }}</h2>
-                                <p class="text-gray-600 text-sm mb-4">{{ Str::limit($image->description, 80) }}</p>
-                            </div>
-
-                            <div class="flex items-center justify-between">
-                                <span class="text-xs bg-slate-100 text-slate-700 px-2 py-1 rounded dark:bg-slate-700 dark:text-slate-200">{{ $image->category->name ?? 'Sem Categoria' }}</span>
-                                <div class="flex gap-2">
-                                    <a href="#" class="text-sm text-blue-600 hover:underline">Ver detalhes</a>
-                                    <form action="{{ route('cart.add') }}" method="POST">
-                                        @csrf
-                                        <input type="hidden" name="tshirt_image_id" value="{{ $image->id }}">
-                                        @php $defaultColor = \App\Models\Color::first()?->code ?? 'white'; @endphp
-                                        <input type="hidden" name="color_code" value="{{ $defaultColor }}">
-                                        <input type="hidden" name="size" value="M">
-                                        <input type="hidden" name="qty" value="1">
-                                        <button class="bg-green-600 text-white px-3 py-1 rounded text-sm cursor-pointer transition hover:underline hover:bg-green-700">Adicionar</button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-
-                @if($tshirtImages->hasPages())
-                    <nav class="mt-8 flex flex-col gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 sm:flex-row sm:items-center sm:justify-between">
-                        <div class="text-sm text-slate-600 dark:text-slate-300">
-                            Showing {{ $tshirtImages->firstItem() }} to {{ $tshirtImages->lastItem() }} of {{ $tshirtImages->total() }} results
-                        </div>
-
-                        <div class="flex flex-wrap items-center gap-1">
-                            @if($tshirtImages->onFirstPage())
-                                <span class="pagination-muted inline-flex h-10 min-w-10 items-center justify-center rounded-lg border border-slate-200 bg-slate-100 px-3 dark:border-slate-700 dark:bg-slate-800">&lsaquo;</span>
-                            @else
-                                <a href="{{ $tshirtImages->previousPageUrl() }}" class="inline-flex h-10 min-w-10 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">&lsaquo;</a>
-                            @endif
-
-                            @php
-                                $currentPage = $tshirtImages->currentPage();
-                                $lastPage = $tshirtImages->lastPage();
-                                $startPage = max(1, $currentPage - 2);
-                                $endPage = min($lastPage, $currentPage + 2);
-                            @endphp
-
-                            @if($startPage > 1)
-                                <a href="{{ $tshirtImages->url(1) }}" class="inline-flex h-10 min-w-10 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">1</a>
-                                @if($startPage > 2)
-                                    <span class="pagination-muted px-2">...</span>
-                                @endif
-                            @endif
-
-                            @for($page = $startPage; $page <= $endPage; $page++)
-                                @if($page === $currentPage)
-                                    <span class="inline-flex h-10 min-w-10 items-center justify-center rounded-lg border border-blue-600 bg-blue-600 px-3 font-semibold text-white dark:border-blue-400 dark:bg-blue-500 dark:text-white">{{ $page }}</span>
-                                @else
-                                    <a href="{{ $tshirtImages->url($page) }}" class="inline-flex h-10 min-w-10 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">{{ $page }}</a>
-                                @endif
-                            @endfor
-
-                            @if($endPage < $lastPage)
-                                @if($endPage < $lastPage - 1)
-                                    <span class="pagination-muted px-2">...</span>
-                                @endif
-                                <a href="{{ $tshirtImages->url($lastPage) }}" class="inline-flex h-10 min-w-10 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">{{ $lastPage }}</a>
-                            @endif
-
-                            @if($tshirtImages->hasMorePages())
-                                <a href="{{ $tshirtImages->nextPageUrl() }}" class="inline-flex h-10 min-w-10 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">&rsaquo;</a>
-                            @else
-                                <span class="pagination-muted inline-flex h-10 min-w-10 items-center justify-center rounded-lg border border-slate-200 bg-slate-100 px-3 dark:border-slate-700 dark:bg-slate-800">&rsaquo;</span>
-                            @endif
-                        </div>
-                    </nav>
-                @endif
-            @endif
-        </main>
+            <div class="mt-8">
+                {{ $tshirtImages->links('pagination.tailwind') }}
+            </div>
+        </div>
     </div>
 </div>
 @endsection
