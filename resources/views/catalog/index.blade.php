@@ -47,7 +47,7 @@
             </div>
 
             <div class="mt-8">
-                {{ $tshirtImages->links('pagination.tailwind') }}
+                {{ $tshirtImages->links() }}
             </div>
         </div>
     </div>
