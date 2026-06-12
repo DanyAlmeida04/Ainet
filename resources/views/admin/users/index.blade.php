@@ -1,8 +1,8 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
-@section('content')
-<div class="container">
-    <h1>Gestão de Utilizadores</h1>
+@section('admin-content')
+<div class="bg-white dark:bg-slate-900 rounded-2xl shadow border border-slate-200/60 dark:border-slate-800 p-6">
+    <h2 class="text-xl font-bold text-slate-800 dark:text-white mb-6">Gestão de Utilizadores</h2>
 
     @if(session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>

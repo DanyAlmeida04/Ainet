@@ -1,19 +1,6 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
-@section('content')
-<div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold text-center">Painel Admin</h1>
-
-    {{-- Top centered control to choose admin area --}}
-    <div class="mt-6 flex justify-center">
-        <nav class="inline-flex bg-white rounded shadow p-2 space-x-2">
-            <a href="{{ route('admin.dashboard') }}" class="px-4 py-2 rounded font-semibold bg-blue-50">Estatísticas</a>
-            <a href="{{ route('admin.orders.index') }}" class="px-4 py-2 rounded hover:bg-gray-100">Encomendas</a>
-            <a href="{{ route('admin.users.index') }}" class="px-4 py-2 rounded hover:bg-gray-100">Utilizadores</a>
-            <a href="{{ route('admin.categories.index') }}" class="px-4 py-2 rounded hover:bg-gray-100">Categorias</a>
-            <a href="{{ route('admin.prices.edit') }}" class="px-4 py-2 rounded hover:bg-gray-100">Preços</a>
-        </nav>
-    </div>
+@section('admin-content')
 
     <div class="mt-4 flex justify-center">
         <div class="inline-flex bg-white rounded shadow p-2">
@@ -100,7 +87,7 @@
              </div>
          </div>
      </div>
- @endsection
+@endsection
  
  @push('scripts')
      {{-- Chart.js from CDN --}}

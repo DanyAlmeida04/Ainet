@@ -5,27 +5,35 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Category;
-use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class CategoryController extends Controller
 {
+    protected function ensureAdmin()
+    {
+        $user = Auth::user();
+        if (! $user || strtoupper((string)($user->user_type ?? '')) !== 'A' || ($user->blocked)) {
+            abort(403, 'Ação restrita a administradores.');
+        }
+    }
+
     public function index()
     {
-        Gate::authorize('manage-users');
+        $this->ensureAdmin();
         $categories = Category::orderBy('name')->paginate(20);
         return view('admin.categories.index', compact('categories'));
     }
 
     public function create()
     {
-        Gate::authorize('manage-users');
+        $this->ensureAdmin();
         return view('admin.categories.create');
     }
 
     public function store(Request $request)
     {
-        Gate::authorize('manage-users');
+        $this->ensureAdmin();
 
         $data = $request->validate([
             'name' => 'required|string|max:255',
@@ -50,13 +58,13 @@ class CategoryController extends Controller
 
     public function edit(Category $category)
     {
-        Gate::authorize('manage-users');
+        $this->ensureAdmin();
         return view('admin.categories.edit', compact('category'));
     }
 
     public function update(Request $request, Category $category)
     {
-        Gate::authorize('manage-users');
+        $this->ensureAdmin();
 
         $data = $request->validate([
             'name' => 'required|string|max:255',
@@ -78,7 +86,7 @@ class CategoryController extends Controller
 
     public function destroy(Category $category)
     {
-        Gate::authorize('manage-users');
+        $this->ensureAdmin();
         $category->delete();
         return back()->with('success', 'Categoria removida.');
     }

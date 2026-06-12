@@ -5,20 +5,28 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Price;
-use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Auth;
 
 class PriceController extends Controller
 {
+    protected function ensureAdmin()
+    {
+        $user = Auth::user();
+        if (! $user || strtoupper((string)($user->user_type ?? '')) !== 'A' || ($user->blocked)) {
+            abort(403, 'Ação restrita a administradores.');
+        }
+    }
+
     public function edit()
     {
-        Gate::authorize('manage-users');
+        $this->ensureAdmin();
         $price = Price::find(1);
         return view('admin.prices.edit', compact('price'));
     }
 
     public function update(Request $request)
     {
-        Gate::authorize('manage-users');
+        $this->ensureAdmin();
         $data = $request->validate([
             'unit_price_catalog' => 'required|numeric|min:0',
             'unit_price_own' => 'required|numeric|min:0',

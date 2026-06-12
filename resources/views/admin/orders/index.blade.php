@@ -1,8 +1,8 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
-@section('content')
-<div class="container">
-    <h1>Encomendas (Admin)</h1>
+@section('admin-content')
+<div class="bg-white dark:bg-slate-900 rounded-2xl shadow border border-slate-200/60 dark:border-slate-800 p-6">
+    <h2 class="text-xl font-bold text-slate-800 dark:text-white mb-4">Encomendas (Admin)</h2>
 
     <form method="get" class="mb-4 flex items-center space-x-2">
         <input type="text" name="customer_id" placeholder="Customer ID" value="{{ request('customer_id') }}" class="px-2 py-1 border rounded" />

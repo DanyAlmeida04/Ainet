@@ -1,8 +1,8 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
-@section('content')
-<div class="container">
-    <h1>Configuração de Preços</h1>
+@section('admin-content')
+<div class="bg-white dark:bg-slate-900 rounded-2xl shadow border border-slate-200/60 dark:border-slate-800 p-6">
+    <h2 class="text-xl font-bold text-slate-800 dark:text-white mb-6">Configuração de Preços</h2>
     <form method="post" action="{{ route('admin.prices.update') }}">
         @csrf
         <div class="grid grid-cols-2 gap-4">

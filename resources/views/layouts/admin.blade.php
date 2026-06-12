@@ -1,0 +1,46 @@
+@extends('layouts.app')
+
+@section('content')
+<div class="container mx-auto px-4 py-6">
+
+    {{-- Admin Panel Persistent Navigation --}}
+    <div class="mb-6">
+        <div class="flex items-center justify-between mb-3">
+            <h1 class="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                🛠️ Painel Admin
+            </h1>
+            <a href="{{ route('catalog.index') }}" class="text-sm text-slate-500 hover:underline dark:text-slate-400">← Ver Loja</a>
+        </div>
+
+        <nav class="flex flex-wrap gap-1.5 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-800 p-2">
+            @php
+                $currentRoute = Route::currentRouteName();
+                $navItems = [
+                    ['route' => 'admin.dashboard',         'label' => '📊 Estatísticas',   'match' => 'admin.dashboard'],
+                    ['route' => 'admin.orders.index',      'label' => '📦 Encomendas',      'match' => 'admin.orders'],
+                    ['route' => 'admin.users.index',       'label' => '👥 Utilizadores',    'match' => 'admin.users'],
+                    ['route' => 'admin.categories.index',  'label' => '🗂️ Categorias',      'match' => 'admin.categories'],
+                    ['route' => 'admin.prices.edit',       'label' => '💶 Preços',          'match' => 'admin.prices'],
+                ];
+            @endphp
+
+            @foreach($navItems as $item)
+                @php
+                    $isActive = str_starts_with($currentRoute ?? '', $item['match']);
+                @endphp
+                <a href="{{ route($item['route']) }}"
+                   class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-150
+                          {{ $isActive
+                             ? 'bg-blue-600 text-white shadow-sm'
+                             : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                    {{ $item['label'] }}
+                </a>
+            @endforeach
+        </nav>
+    </div>
+
+    {{-- Page Content --}}
+    @yield('admin-content')
+
+</div>
+@endsection

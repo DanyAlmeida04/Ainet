@@ -1,9 +1,11 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
-@section('content')
-<div class="container">
-    <h1>Categorias</h1>
-    <a href="{{ route('admin.categories.create') }}" class="btn btn-primary">Criar</a>
+@section('admin-content')
+<div class="bg-white dark:bg-slate-900 rounded-2xl shadow border border-slate-200/60 dark:border-slate-800 p-6">
+    <div class="flex items-center justify-between mb-6">
+        <h2 class="text-xl font-bold text-slate-800 dark:text-white">Categorias</h2>
+        <a href="{{ route('admin.categories.create') }}" class="inline-flex items-center gap-1.5 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition">+ Nova Categoria</a>
+    </div>
 
     <table class="table">
         <thead>
