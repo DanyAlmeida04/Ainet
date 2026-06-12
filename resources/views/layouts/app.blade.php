@@ -13,11 +13,11 @@
         <a href="/" class="text-2xl font-bold tracking-wider">👕 Low Cortisol</a>
         <div class="flex items-center space-x-6">
             <a href="{{ route('catalog.index') }}" class="hover:underline">Catálogo</a>
-            <a href="#" class="hover:underline">Carrinho</a>
-            
+            <a href="{{ route('cart.index') }}" class="hover:underline">Carrinho</a>
+
             @auth
                 <span class="text-sm bg-blue-700 px-3 py-1 rounded">Olá, {{ Auth::user()->name }}</span>
-                
+
                 <form action="{{ route('logout') }}" method="POST" class="inline">
                     @csrf
                     <button type="submit" class="hover:underline text-red-200">Sair</button>

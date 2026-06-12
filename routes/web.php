@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TshirtImageController;
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('catalog.index');
 });
 
 // A tua nova rota do catálogo público:
@@ -13,13 +13,19 @@ Route::get('/catalogo', [TshirtImageController::class, 'index'])->name('catalog.
 
 // Carrinho (persistido na sessão) - acessível a todos
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\OrderController;
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
 Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
 Route::post('/cart/update', [CartController::class, 'update'])->name('cart.update');
 Route::post('/cart/remove', [CartController::class, 'remove'])->name('cart.remove');
 Route::post('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
+
+// Checkout / pagamento
+Route::get('/cart/payment', [OrderController::class, 'payment'])->name('cart.payment');
+Route::post('/cart/process-payment', [OrderController::class, 'processPayment'])->name('cart.processPayment');
+
 Route::get('/checkout', function () {
-    return redirect()->route('login'); // checkout disponível apenas para clientes autenticados; ficará a apontar para o fluxo real depois
+    return redirect()->route('cart.payment');
 })->name('checkout');
 
 use App\Http\Controllers\AuthController;
