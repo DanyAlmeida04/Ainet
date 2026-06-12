@@ -4,7 +4,7 @@
     <div class="container mx-auto px-4 py-8">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div class="relative">
-                <img id="tshirt-base" src="{{ asset('img/tshirt_white.png') }}" alt="T-shirt Base" class="w-full rounded-lg shadow-md">
+                <img id="tshirt-base" src="{{ asset('storage/tshirt_colors/white.png') }}" alt="T-shirt Base" class="w-full rounded-lg shadow-md">
                 <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-1/3">
                     <img src="{{ asset('storage/tshirt_images/' . $tshirtImage->image_url) }}" alt="{{ $tshirtImage->name }}" class="w-full h-auto">
                 </div>
@@ -17,15 +17,23 @@
                     <form action="{{ route('cart.add') }}" method="POST">
                         @csrf
                         <input type="hidden" name="tshirt_image_id" value="{{ $tshirtImage->id }}">
+                        <input type="hidden" name="color_code" id="selected-color" value="#FFFFFF">
 
                         <div class="mb-4">
-                            <label for="color" class="block text-gray-700 font-semibold mb-2">Cor:</label>
-                            <select name="color_code" id="color" class="w-full border-gray-300 rounded-md shadow-sm">
-                                <option value="white" data-hex="#FFFFFF" selected>Branco</option>
-                                <option value="black" data-hex="#000000">Preto</option>
-                                <option value="red" data-hex="#FF0000">Vermelho</option>
-                                <option value="blue" data-hex="#0000FF">Azul</option>
-                            </select>
+                            <label class="block text-gray-700 font-semibold mb-2">Cor:</label>
+                            <div class="flex space-x-2">
+                                @foreach($colors as $color)
+                                    <div class="color-swatch-wrapper">
+                                        <div
+                                            class="color-swatch w-8 h-8 rounded-full cursor-pointer border-2 border-transparent transition-transform duration-150 transform hover:scale-110"
+                                            style="background-color: {{ $color->code }};"
+                                            data-color-name="{{ $color->name }}"
+                                            data-color-code="{{ $color->code }}"
+                                            title="{{ $color->name }}"
+                                        ></div>
+                                    </div>
+                                @endforeach
+                            </div>
                         </div>
 
                         <div class="mb-4">
@@ -57,10 +65,32 @@
 
 @push('scripts')
 <script>
-    document.getElementById('color').addEventListener('change', function() {
-        var selectedColor = this.value;
-        var tshirtBase = document.getElementById('tshirt-base');
-        tshirtBase.src = `{{ asset('img/tshirt_') }}${selectedColor}.png`;
+    document.addEventListener('DOMContentLoaded', function() {
+        const swatches = document.querySelectorAll('.color-swatch');
+        const tshirtBase = document.getElementById('tshirt-base');
+        const selectedColorInput = document.getElementById('selected-color');
+
+        // Set initial selected state
+        const initialSwatch = document.querySelector('.color-swatch[data-color-name="white"]');
+        if (initialSwatch) {
+            initialSwatch.classList.add('border-blue-500', 'scale-110');
+            initialSwatch.classList.remove('border-transparent');
+        }
+
+        swatches.forEach(swatch => {
+            swatch.addEventListener('click', function() {
+                // Update hidden input
+                selectedColorInput.value = this.dataset.colorCode;
+
+                // Update T-shirt image
+                const colorName = this.dataset.colorName.toLowerCase();
+                tshirtBase.src = `{{ asset('storage/tshirt_colors') }}/${colorName}.png`;
+
+                // Update selected visual state
+                swatches.forEach(s => s.classList.replace('border-blue-500', 'border-transparent'));
+                this.classList.replace('border-transparent', 'border-blue-500');
+            });
+        });
     });
 </script>
 @endpush
