@@ -47,7 +47,7 @@ class CartController extends Controller
 
         Session::put('cart', $cart);
 
-        return redirect()->back()->with('success', 'Item adicionado ao carrinho.');
+        return redirect()->back()->with('success', 'Camisola adicionada com sucesso ao carrinho.');
     }
 
     // Atualizar quantidade/atributos de um item do carrinho

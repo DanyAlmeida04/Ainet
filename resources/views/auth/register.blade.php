@@ -50,7 +50,7 @@
                    class="mt-1 w-full border border-gray-300 rounded px-3 py-2">
         </div>
 
-        <button type="submit" class="w-full bg-green-600 text-white py-2 rounded font-semibold hover:bg-green-700">
+        <button type="submit" class="w-full bg-green-600 text-white py-2 rounded font-semibold cursor-pointer transition hover:underline hover:bg-green-700">
             Registar Conta
         </button>
     </form>

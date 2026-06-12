@@ -4,10 +4,6 @@
 <div class="container mx-auto px-4 py-8">
     <h1 class="text-2xl font-bold mb-6">Carrinho de Compras</h1>
 
-    @if(session('success'))
-        <div class="bg-green-100 text-green-700 p-3 rounded mb-4">{{ session('success') }}</div>
-    @endif
-
     @php $total = 0; @endphp
 
     @if(empty($cart) || count($cart) == 0)
@@ -48,7 +44,7 @@
                                 @csrf
                                 <input type="hidden" name="key" value="{{ $key }}">
                                 <input type="number" name="qty" value="{{ $item['qty'] }}" min="0" class="w-20 text-center border rounded px-2 py-1">
-                                <button class="ml-2 bg-blue-600 text-white px-3 py-1 rounded">OK</button>
+                                <button class="ml-2 bg-blue-600 text-white px-3 py-1 rounded cursor-pointer transition hover:underline">OK</button>
                             </form>
                         </td>
                         <td class="p-3 text-right">€{{ number_format($unit, 2) }}</td>
@@ -57,7 +53,7 @@
                             <form action="{{ route('cart.remove') }}" method="POST">
                                 @csrf
                                 <input type="hidden" name="key" value="{{ $key }}">
-                                <button class="bg-red-500 text-white px-3 py-1 rounded">Remover</button>
+                                <button class="bg-red-500 text-white px-3 py-1 rounded cursor-pointer transition hover:underline">Remover</button>
                             </form>
                         </td>
                     </tr>
@@ -70,7 +66,7 @@
             <div class="mt-4 flex justify-end gap-2">
                 <form action="{{ route('cart.clear') }}" method="POST">
                     @csrf
-                    <button class="bg-gray-500 text-white px-4 py-2 rounded">Limpar Carrinho</button>
+                    <button class="bg-gray-500 text-white px-4 py-2 rounded cursor-pointer transition hover:underline">Limpar Carrinho</button>
                 </form>
 
                 <a href="{{ route('checkout') }}" class="bg-green-600 text-white px-4 py-2 rounded">Finalizar Compra</a>

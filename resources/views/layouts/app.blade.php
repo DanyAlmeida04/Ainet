@@ -6,12 +6,11 @@
     <title>FunShirt - Loja Online</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
-        /* Improve contrast and fix white-on-white issues */
         :root{
-            --fs-primary: #1e3a8a; /* darker blue */
+            --fs-primary: #1e3a8a;
             --fs-primary-contrast: #ffffff;
-            --fs-green: #15803d; /* darker green */
-            --fs-text: #111827; /* dark text */
+            --fs-green: #15803d;
+            --fs-text: #111827;
             --fs-muted: #6b7280;
             --card-bg: #ffffff;
             --page-bg: #f3f4f6;
@@ -19,12 +18,11 @@
             --footer-bg: #111827;
         }
 
-        /* Dark mode variables under .dark on root */
         .dark {
-            --fs-primary: #60a5fa; /* lighter blue for dark bg */
+            --fs-primary: #60a5fa;
             --fs-primary-contrast: #0b1220;
             --fs-green: #34d399;
-            --fs-text: #e6eef8; /* light text */
+            --fs-text: #e6eef8;
             --fs-muted: #9ca3af;
             --card-bg: #0b1220;
             --page-bg: #071127;
@@ -33,47 +31,160 @@
         }
 
         body { color: var(--fs-text); background-color: var(--page-bg); }
-
-        /* Make common utility colors slightly darker for better contrast */
+        nav { background-color: var(--nav-bg); }
         .bg-blue-600 { background-color: var(--fs-primary) !important; }
         .bg-blue-700 { background-color: #15326b !important; }
         .bg-green-600 { background-color: var(--fs-green) !important; }
-
-        /* Links default to primary color, but keep hover underline for affordance */
         a:not(.text-white) { color: var(--fs-primary); }
-        /* Ensure anchors explicitly marked as text-white are rendered white (higher specificity) */
-        a.text-white { color: var(--fs-primary-contrast) !important; }
         a:hover { text-decoration: underline; }
-
-        /* Ensure buttons with pale backgrounds have dark text */
         .bg-gray-100, .bg-gray-200, .bg-blue-50 { color: var(--fs-text) !important; }
-
-        /* Ensure cards use card background variable */
         .card-bg { background-color: var(--card-bg); }
-
-        /* Improve footer contrast */
         footer { color: var(--fs-muted); background-color: var(--footer-bg); }
-
-        /* Profile dropdown explicit text color to avoid inheritance problems */
         .profile-dropdown { color: var(--fs-text); }
+
+        .dark .bg-white {
+            background-color: var(--card-bg) !important;
+        }
+
+        .dark .bg-blue-50 {
+            background-color: #0f172a !important;
+            color: var(--fs-text) !important;
+        }
+
+        .dark .text-gray-500,
+        .dark .text-gray-600,
+        .dark .text-gray-700,
+        .dark .text-gray-800,
+        .dark .text-gray-900,
+        .dark .text-black {
+            color: var(--fs-text) !important;
+        }
+
+        .dark .text-blue-600 {
+            color: #93c5fd !important;
+        }
+
+        .dark .text-blue-800 {
+            color: #e2e8f0 !important;
+        }
+
+        .dark .border,
+        .dark .border-gray-100,
+        .dark .border-gray-200,
+        .dark .border-gray-300 {
+            border-color: #334155 !important;
+        }
+
+        .dark table {
+            background-color: var(--card-bg) !important;
+            color: var(--fs-text) !important;
+        }
+
+        .dark thead {
+            background-color: #0f172a !important;
+        }
+
+        .dark tbody tr {
+            border-color: #334155 !important;
+        }
+
+        .dark tbody tr:nth-child(even) {
+            background-color: rgba(255, 255, 255, 0.03) !important;
+        }
+
+        .dark input,
+        .dark select,
+        .dark textarea {
+            background-color: #0f172a !important;
+            color: var(--fs-text) !important;
+            border-color: #334155 !important;
+        }
+
+        .dark ::placeholder {
+            color: #94a3b8 !important;
+        }
+
+        .dark .text-yellow-800 {
+            color: #fde68a !important;
+        }
+
+        .dark .bg-yellow-100 {
+            background-color: #422006 !important;
+        }
+
+        :root {
+            --pagination-bg: #ffffff;
+            --pagination-text: #334155;
+            --pagination-border: #e2e8f0;
+            --pagination-item-bg: #ffffff;
+            --pagination-item-hover: #f8fafc;
+            --pagination-muted: #94a3b8;
+            --pagination-current-bg: #dbeafe;
+            --pagination-current-text: #1d4ed8;
+            --pagination-current-border: #bfdbfe;
+        }
+
+        .dark {
+            --pagination-bg: #0f172a;
+            --pagination-text: #e2e8f0;
+            --pagination-border: #334155;
+            --pagination-item-bg: #0f172a;
+            --pagination-item-hover: #111827;
+            --pagination-muted: #94a3b8;
+            --pagination-current-bg: #2563eb;
+            --pagination-current-text: #ffffff;
+            --pagination-current-border: #2563eb;
+        }
+
+        .pagination-clean nav[role="navigation"] {
+            background: var(--pagination-bg) !important;
+            color: var(--pagination-text) !important;
+            border: 1px solid var(--pagination-border) !important;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+        }
+
+        .pagination-clean nav[role="navigation"] a,
+        .pagination-clean nav[role="navigation"] span,
+        .pagination-clean nav[role="navigation"] button {
+            background: var(--pagination-item-bg) !important;
+            color: var(--pagination-text) !important;
+            border-color: var(--pagination-border) !important;
+        }
+
+        .pagination-clean nav[role="navigation"] a:hover {
+            background: var(--pagination-item-hover) !important;
+        }
+
+        .pagination-clean nav[role="navigation"] .pagination-muted {
+            color: var(--pagination-muted) !important;
+        }
+
+        .pagination-clean nav[role="navigation"] [aria-current="page"] {
+            background: var(--pagination-current-bg) !important;
+            color: var(--pagination-current-text) !important;
+            border-color: var(--pagination-current-border) !important;
+        }
 
     </style>
 </head>
 <body class="bg-gray-100 flex flex-col min-h-screen" id="pageRoot">
 
-<nav class="bg-blue-800 text-white shadow-md" id="mainNav" style="background-color:var(--nav-bg)">
+<nav class="bg-blue-800 text-white shadow-md" id="mainNav">
     <div class="container mx-auto px-4 py-4 flex justify-between items-center">
         <a href="/" class="text-2xl font-bold tracking-wider text-white">👕 Low Cortisol</a>
         <div class="flex items-center space-x-4">
             <a href="{{ route('catalog.index') }}" class="hover:underline text-white">Catálogo</a>
             <a href="{{ route('cart.index') }}" class="hover:underline text-white">Carrinho</a>
 
+            <button id="themeToggle" title="Alternar tema claro/escuro" class="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-gray-200 text-sm font-medium transition-colors duration-200 hover:bg-gray-300" aria-pressed="false">
+                <span id="themeToggleIcon" aria-hidden="true">🌙</span>
+                <span id="themeToggleLabel">Dark mode</span>
+            </button>
+
             @auth
                 @can('manage-users')
                     <a href="{{ route('admin.dashboard') }}" class="bg-white text-blue-800 px-3 py-1 rounded font-semibold hover:bg-gray-100">Admin</a>
                 @endcan
-
-                <button id="themeToggle" title="Alternar tema claro/escuro" class="px-3 py-1 rounded bg-gray-200 text-sm">Modo</button>
 
                 <div class="relative">
                     <button id="profileToggle" class="text-sm bg-blue-700 text-white px-3 py-1 rounded focus:outline-none">Olá, {{ Auth::user()->name }}</button>
@@ -94,7 +205,15 @@
     </div>
 </nav>
 
-    <main class="flex-grow">
+    @if(session('success'))
+        <div id="flashToast" class="fixed bottom-4 right-4 z-50 w-[calc(100vw-2rem)] max-w-sm transition-all duration-300 ease-out">
+            <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 shadow-lg dark:border-emerald-900/40 dark:bg-emerald-950/70 dark:text-emerald-200">
+                {{ session('success') }}
+            </div>
+        </div>
+    @endif
+
+    <main class="grow">
         @yield('content')
     </main>
 
@@ -103,35 +222,73 @@
     </footer>
 
 <script>
-    // Profile dropdown toggle
-    document.addEventListener('DOMContentLoaded', function() {
-        var btn = document.getElementById('profileToggle');
-        var dropdown = document.getElementById('profileDropdown');
-        if (btn) {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                dropdown.classList.toggle('hidden');
+    document.addEventListener('DOMContentLoaded', function () {
+        var profileToggle = document.getElementById('profileToggle');
+        var profileDropdown = document.getElementById('profileDropdown');
+
+        if (profileToggle && profileDropdown) {
+            profileToggle.addEventListener('click', function (event) {
+                event.preventDefault();
+                profileDropdown.classList.toggle('hidden');
             });
-            document.addEventListener('click', function(e) {
-                if (!btn.contains(e.target) && dropdown && !dropdown.contains(e.target)) {
-                    dropdown.classList.add('hidden');
+
+            document.addEventListener('click', function (event) {
+                if (!profileToggle.contains(event.target) && !profileDropdown.contains(event.target)) {
+                    profileDropdown.classList.add('hidden');
                 }
             });
         }
 
-        // Theme toggle
         var themeToggle = document.getElementById('themeToggle');
-        var root = document.documentElement || document.getElementById('pageRoot');
-        var stored = localStorage.getItem('fs-theme');
-        if (stored === 'dark') {
-            document.documentElement.classList.add('dark');
+        var themeToggleIcon = document.getElementById('themeToggleIcon');
+        var themeToggleLabel = document.getElementById('themeToggleLabel');
+        if (!themeToggle) {
+            return;
         }
-        if (themeToggle) {
-            themeToggle.addEventListener('click', function() {
-                document.documentElement.classList.toggle('dark');
-                var isDark = document.documentElement.classList.contains('dark');
-                localStorage.setItem('fs-theme', isDark ? 'dark' : 'light');
-            });
+
+        var root = document.documentElement;
+        var storedTheme = localStorage.getItem('fs-theme');
+        var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var initialTheme = storedTheme || (prefersDark ? 'dark' : 'light');
+
+        function updateThemeButton(isDark) {
+            if (themeToggleIcon) {
+                themeToggleIcon.textContent = isDark ? '☀️' : '🌙';
+            }
+            if (themeToggleLabel) {
+                themeToggleLabel.textContent = isDark ? 'Light mode' : 'Dark mode';
+            }
+            themeToggle.title = isDark ? 'Alternar para light mode' : 'Alternar para dark mode';
+            themeToggle.setAttribute('aria-pressed', isDark ? 'true' : 'false');
+            themeToggle.classList.toggle('bg-gray-200', !isDark);
+            themeToggle.classList.toggle('bg-slate-800', isDark);
+            themeToggle.classList.toggle('text-slate-100', isDark);
+            themeToggle.classList.toggle('hover:bg-gray-300', !isDark);
+            themeToggle.classList.toggle('hover:bg-slate-700', isDark);
+        }
+
+        function applyTheme(theme) {
+            var isDark = theme === 'dark';
+            root.classList.toggle('dark', isDark);
+            localStorage.setItem('fs-theme', isDark ? 'dark' : 'light');
+            updateThemeButton(isDark);
+        }
+
+        applyTheme(initialTheme);
+
+        themeToggle.addEventListener('click', function () {
+            applyTheme(root.classList.contains('dark') ? 'light' : 'dark');
+        });
+
+        var flashToast = document.getElementById('flashToast');
+        if (flashToast) {
+            window.setTimeout(function () {
+                flashToast.style.opacity = '0';
+                flashToast.style.transform = 'translateY(8px)';
+                window.setTimeout(function () {
+                    flashToast.remove();
+                }, 300);
+            }, 5000);
         }
     });
 </script>

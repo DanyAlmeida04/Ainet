@@ -31,7 +31,7 @@
             <label Soluções para "remember" class="text-sm text-gray-600" for="remember">Lembrar-me neste computador</label>
         </div>
 
-        <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded font-semibold hover:bg-blue-700">
+        <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded font-semibold cursor-pointer transition hover:underline hover:bg-blue-700">
             Entrar
         </button>
     </form>
