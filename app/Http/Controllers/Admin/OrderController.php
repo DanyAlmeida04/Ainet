@@ -9,16 +9,31 @@ use Illuminate\Support\Facades\Gate;
 use App\Jobs\GenerateReceiptJob;
 use App\Jobs\SendReceiptEmailJob;
 use Illuminate\Support\Facades\Log;
-use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Auth\Access\AuthorizationException;
 
 class OrderController extends Controller
 {
+    protected function ensureAdmin()
+    {
+        $u = auth()->user();
+        if (! $u || ($u->blocked ?? false)) {
+            Log::warning('ensureAdmin: user missing or blocked', ['user' => $u ? $u->id : null]);
+            abort(403, 'Ação restrita a administradores.');
+        }
+        $type = strtoupper((string) ($u->user_type ?? ''));
+        if (! in_array($type, ['A', 'ADMIN'])) {
+            Log::warning('ensureAdmin: not admin', ['user_id' => $u->id ?? null, 'user_type' => $u->user_type ?? null]);
+            abort(403, 'Ação restrita a administradores.');
+        }
+    }
+
     public function index(Request $request)
     {
-        Gate::authorize('manage-users'); // admin only
+        $this->ensureAdmin();
 
         $q = Order::query()->with('items');
 
+        // standard filters
         if ($request->filled('status')) {
             $q->where('status', $request->status);
         }
@@ -32,21 +47,38 @@ class OrderController extends Controller
             $q->where('date', '<=', $request->to);
         }
 
-        $orders = $q->orderBy('date', 'desc')->paginate(20)->appends($request->query());
+        // New: filter by tshirt identifier or name (search in related order_items -> tshirtImage)
+        if ($request->filled('tshirt')) {
+            $t = $request->tshirt;
+            $q->whereHas('items', function($qi) use ($t) {
+                $qi->where('tshirt_image_id', $t)
+                   ->orWhereHas('tshirtImage', function($qt) use ($t) {
+                        $qt->where('name', 'like', "%{$t}%");
+                   });
+            });
+        }
+
+        // If ?all=1 is present, return all matching orders (no pagination)
+        if ($request->boolean('all')) {
+            $orders = $q->orderBy('date', 'desc')->get();
+        } else {
+            $orders = $q->orderBy('date', 'desc')->paginate(20)->appends($request->query());
+        }
 
         return view('admin.orders.index', compact('orders'));
     }
 
     public function show(Order $order)
     {
-        Gate::authorize('manage-users');
+        $this->ensureAdmin();
+
         $order->load('items.tshirtImage', 'customer.user');
         return view('admin.orders.show', compact('order'));
     }
 
     public function close(Request $request, Order $order)
     {
-        Gate::authorize('manage-users');
+        $this->ensureAdmin();
 
         if ($order->status === 'closed') {
             return back()->with('info', 'Encomenda já estava fechada.');
@@ -68,7 +100,7 @@ class OrderController extends Controller
 
     public function cancel(Request $request, Order $order)
     {
-        Gate::authorize('manage-users');
+        $this->ensureAdmin();
 
         $request->validate(['reason' => 'nullable|string|max:1024']);
 
@@ -84,7 +116,7 @@ class OrderController extends Controller
 
     public function generateAndSend(Request $request, Order $order)
     {
-        Gate::authorize('manage-users');
+        $this->ensureAdmin();
 
         // Generate receipt synchronously
         GenerateReceiptJob::dispatchSync($order->id);
@@ -104,7 +136,7 @@ class OrderController extends Controller
 
     public function preview(Order $order)
     {
-        Gate::authorize('manage-users');
+        $this->ensureAdmin();
 
         // If receipt not generated yet, generate it synchronously first
         if (empty($order->receipt_url) || ! file_exists(storage_path('app/' . $order->receipt_url))) {
