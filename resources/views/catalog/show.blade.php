@@ -3,8 +3,11 @@
 @section('content')
     <div class="container mx-auto px-4 py-8">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div>
-                <img src="{{ asset('storage/tshirt_images/' . $tshirtImage->image_url) }}" alt="{{ $tshirtImage->name }}" class="w-full rounded-lg shadow-md">
+            <div class="relative">
+                <img id="tshirt-base" src="{{ asset('img/tshirt_white.png') }}" alt="T-shirt Base" class="w-full rounded-lg shadow-md">
+                <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-1/3">
+                    <img src="{{ asset('storage/tshirt_images/' . $tshirtImage->image_url) }}" alt="{{ $tshirtImage->name }}" class="w-full h-auto">
+                </div>
             </div>
             <div>
                 <h1 class="text-4xl font-bold mb-4">{{ $tshirtImage->name }}</h1>
@@ -18,10 +21,10 @@
                         <div class="mb-4">
                             <label for="color" class="block text-gray-700 font-semibold mb-2">Cor:</label>
                             <select name="color_code" id="color" class="w-full border-gray-300 rounded-md shadow-sm">
-                                <option value="#FFFFFF">Branco</option>
-                                <option value="#000000">Preto</option>
-                                <option value="#FF0000">Vermelho</option>
-                                <option value="#0000FF">Azul</option>
+                                <option value="white" data-hex="#FFFFFF" selected>Branco</option>
+                                <option value="black" data-hex="#000000">Preto</option>
+                                <option value="red" data-hex="#FF0000">Vermelho</option>
+                                <option value="blue" data-hex="#0000FF">Azul</option>
                             </select>
                         </div>
 
@@ -51,4 +54,14 @@
             <a href="{{ route('catalog.index') }}" class="text-blue-600 hover:underline">&larr; Voltar ao Catálogo</a>
         </div>
     </div>
+
+@push('scripts')
+<script>
+    document.getElementById('color').addEventListener('change', function() {
+        var selectedColor = this.value;
+        var tshirtBase = document.getElementById('tshirt-base');
+        tshirtBase.src = `{{ asset('img/tshirt_') }}${selectedColor}.png`;
+    });
+</script>
+@endpush
 @endsection
