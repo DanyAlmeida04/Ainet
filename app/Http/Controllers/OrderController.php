@@ -64,8 +64,18 @@ class OrderController extends Controller
         // calcular total
         $priceConf = Price::current();
         $total = 0;
-        foreach ($cart as $item) {
-            $unit = $priceConf ? $priceConf->unit_price_catalog : 10.00;
+        $itemPrices = [];
+        foreach ($cart as $key => $item) {
+            $unit = 10.00;
+            if ($priceConf) {
+                $threshold = $priceConf->qty_discount ?? 0;
+                if ($threshold > 0 && $item['qty'] >= $threshold) {
+                    $unit = $priceConf->unit_price_catalog_discount;
+                } else {
+                    $unit = $priceConf->unit_price_catalog;
+                }
+            }
+            $itemPrices[$key] = $unit;
             $total += $unit * $item['qty'];
         }
 
@@ -92,15 +102,16 @@ class OrderController extends Controller
             ]);
 
             // Criar order items
-            foreach ($cart as $item) {
+            foreach ($cart as $key => $item) {
+                $unit = $itemPrices[$key];
                 OrderItem::create([
                     'order_id' => $order->id,
                     'tshirt_image_id' => $item['tshirt_image_id'],
                     'color_code' => $item['color_code'],
                     'size' => $item['size'],
                     'qty' => $item['qty'],
-                    'unit_price' => $priceConf->unit_price_catalog,
-                    'sub_total' => $priceConf->unit_price_catalog * $item['qty'],
+                    'unit_price' => $unit,
+                    'sub_total' => $unit * $item['qty'],
                 ]);
             }
 

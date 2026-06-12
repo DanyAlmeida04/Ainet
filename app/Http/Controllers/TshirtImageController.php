@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\TshirtImage;
 use App\Models\Category;
+use App\Models\Color;
+use App\Models\Price;
 use Illuminate\Http\Request;
 
 class TshirtImageController extends Controller
@@ -40,5 +42,31 @@ class TshirtImageController extends Controller
 
         // 6. Envia os dados para a vista Blade que vamos criar a seguir
         return view('catalog.index', compact('tshirtImages', 'categories'));
+    }
+
+    /**
+     * Exibe a página de detalhes de uma t-shirt.
+     */
+    public function show(TshirtImage $tshirtImage)
+    {
+        // Impedir o acesso a imagens personalizadas privadas de outros clientes
+        if ($tshirtImage->isPrivate()) {
+            $user = auth()->user();
+            $customer = $user ? $user->customer : null;
+            $isOwner = $customer && $customer->id === $tshirtImage->customer_id;
+            $isAdminOrStaff = $user && ($user->user_type === 'A' || $user->user_type === 'F');
+
+            if (!$isOwner && !$isAdminOrStaff) {
+                abort(403, 'Não tem permissão para aceder a esta imagem.');
+            }
+        }
+
+        // Obter todas as cores ativas
+        $colors = Color::orderBy('name')->get();
+
+        // Obter a configuração de preços em vigor
+        $priceConf = Price::current();
+
+        return view('catalog.show', compact('tshirtImage', 'colors', 'priceConf'));
     }
 }

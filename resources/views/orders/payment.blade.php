@@ -18,17 +18,40 @@
             @php $total = 0; @endphp
             @forelse($cart as $key => $item)
                 @php
-                    $unit = $priceConf ? $priceConf->unit_price_catalog : 10.00;
+                    $unit = 10.00;
+                    if ($priceConf) {
+                        $threshold = $priceConf->qty_discount ?? 0;
+                        if ($threshold > 0 && $item['qty'] >= $threshold) {
+                            $unit = $priceConf->unit_price_catalog_discount;
+                        } else {
+                            $unit = $priceConf->unit_price_catalog;
+                        }
+                    }
                     $sub = $unit * $item['qty'];
                     $total += $sub;
+                    $colorObj = \App\Models\Color::find($item['color_code']);
                 @endphp
                 <div class="flex items-center gap-3 border-b py-3">
-                    <img src="{{ asset('storage/tshirt_images/' . $item['image_url']) }}" class="w-16 h-16 object-contain">
-                    <div class="flex-1">
-                        <div class="font-semibold">{{ $item['name'] }}</div>
-                        <div class="text-sm text-gray-600">{{ $item['color_code'] }} | {{ $item['size'] }}</div>
+                    <div class="relative w-14 h-14 bg-slate-50 dark:bg-slate-900 rounded border border-slate-200/50 dark:border-slate-800 flex items-center justify-center p-1 overflow-hidden shrink-0">
+                        {{-- Base T-shirt --}}
+                        <img src="{{ asset('storage/tshirt_base/' . $item['color_code'] . '.jpg') }}" class="w-full h-full object-contain pointer-events-none select-none">
+                        {{-- Design Overlay --}}
+                        <img src="{{ asset('storage/tshirt_images/' . $item['image_url']) }}" class="absolute w-[36%] h-[36%] object-contain top-[28%] left-1/2 -translate-x-1/2 pointer-events-none select-none drop-shadow-sm opacity-90">
                     </div>
-                    <div class="text-right">€{{ number_format($sub, 2) }}</div>
+                    <div class="flex-1">
+                        <div class="font-semibold text-slate-900 dark:text-white">{{ $item['name'] }}</div>
+                        <div class="text-xs text-slate-500 dark:text-slate-400 flex flex-wrap items-center gap-x-2">
+                            <span>Tam: <strong>{{ $item['size'] }}</strong></span>
+                            <span>|</span>
+                            <span>Qty: <strong>{{ $item['qty'] }}</strong></span>
+                            <span>|</span>
+                            <span class="inline-flex items-center gap-1">
+                                <span class="w-2.5 h-2.5 rounded-full inline-block border border-slate-300 dark:border-slate-600" style="background-color: #{{ $item['color_code'] }}"></span>
+                                {{ $colorObj?->name ?? $item['color_code'] }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="text-right text-sm font-semibold">€{{ number_format($sub, 2) }}</div>
                 </div>
             @empty
                 <p>O seu carrinho está vazio.</p>

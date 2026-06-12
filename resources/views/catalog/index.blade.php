@@ -61,28 +61,24 @@
                     @foreach($tshirtImages as $image)
                         <div class="border rounded-lg p-4 shadow hover:shadow-lg transition flex flex-col justify-between bg-white">
                             <div>
-                                <img src="{{ asset('storage/tshirt_images/' . $image->image_url) }}" alt="{{ $image->name }}" class="w-full h-48 object-contain mb-4 rounded">
-                                <h2 class="font-bold text-lg mb-1">{{ $image->name }}</h2>
+                                <a href="{{ route('catalog.show', $image->id) }}" class="block mb-4">
+                                    <img src="{{ asset('storage/tshirt_images/' . $image->image_url) }}" alt="{{ $image->name }}" class="w-full h-48 object-contain rounded hover:opacity-90 transition">
+                                </a>
+                                <h2 class="font-bold text-lg mb-1">
+                                    <a href="{{ route('catalog.show', $image->id) }}" class="hover:underline text-inherit">{{ $image->name }}</a>
+                                </h2>
                                 <p class="text-gray-600 text-sm mb-4">{{ Str::limit($image->description, 80) }}</p>
                             </div>
 
-                            <div class="flex items-center justify-between">
+                            <div class="flex items-center justify-between mt-auto">
                                 <span class="text-xs bg-slate-100 text-slate-700 px-2 py-1 rounded dark:bg-slate-700 dark:text-slate-200">{{ $image->category->name ?? 'Sem Categoria' }}</span>
-                                <div class="flex gap-2">
-                                    <a href="#" class="text-sm text-blue-600 hover:underline">Ver detalhes</a>
-                                    <form action="{{ route('cart.add') }}" method="POST">
-                                        @csrf
-                                        <input type="hidden" name="tshirt_image_id" value="{{ $image->id }}">
-                                        @php $defaultColor = \App\Models\Color::first()?->code ?? 'white'; @endphp
-                                        <input type="hidden" name="color_code" value="{{ $defaultColor }}">
-                                        <input type="hidden" name="size" value="M">
-                                        <input type="hidden" name="qty" value="1">
-                                        <button class="bg-green-600 text-white px-3 py-1 rounded text-sm cursor-pointer transition hover:underline hover:bg-green-700">Adicionar</button>
-                                    </form>
+                                <div>
+                                    <a href="{{ route('catalog.show', $image->id) }}" class="inline-block bg-blue-600 text-white px-3 py-1.5 rounded text-sm font-semibold transition hover:bg-blue-700 hover:no-underline">Ver detalhes</a>
                                 </div>
                             </div>
                         </div>
                     @endforeach
+
                 </div>
 
                 @if($tshirtImages->hasPages())

@@ -11,6 +11,7 @@ Route::get('/', function () {
 
 // A tua nova rota do catálogo público:
 Route::get('/catalogo', [TshirtImageController::class, 'index'])->name('catalog.index');
+Route::get('/catalogo/{tshirt_image}', [TshirtImageController::class, 'show'])->name('catalog.show');
 
 // Carrinho (persistido na sessão) - acessível a todos
 use App\Http\Controllers\CartController;

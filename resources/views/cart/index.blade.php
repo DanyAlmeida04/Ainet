@@ -32,13 +32,25 @@
                     @endphp
                     <tr class="border-b">
                         <td class="p-3 flex items-center gap-3">
-                            <img src="{{ asset('storage/tshirt_images/' . $item['image_url']) }}" alt="{{ $item['name'] }}" class="w-20 h-20 object-contain">
+                            <div class="relative w-16 h-16 bg-slate-50 dark:bg-slate-900 rounded border border-slate-200/50 dark:border-slate-800 flex items-center justify-center p-1 overflow-hidden shrink-0">
+                                {{-- Base T-shirt --}}
+                                <img src="{{ asset('storage/tshirt_base/' . $item['color_code'] . '.jpg') }}" class="w-full h-full object-contain pointer-events-none select-none">
+                                {{-- Design Overlay --}}
+                                <img src="{{ asset('storage/tshirt_images/' . $item['image_url']) }}" class="absolute w-[36%] h-[36%] object-contain top-[28%] left-1/2 -translate-x-1/2 pointer-events-none select-none drop-shadow-sm opacity-90">
+                            </div>
                             <div>
-                                <div class="font-semibold">{{ $item['name'] }}</div>
+                                <div class="font-semibold text-slate-900 dark:text-white">{{ $item['name'] }}</div>
                             </div>
                         </td>
-                        <td class="p-3 text-center">{{ $item['color_code'] }}</td>
-                        <td class="p-3 text-center">{{ $item['size'] }}</td>
+                        <td class="p-3">
+                            @php $colorObj = \App\Models\Color::find($item['color_code']); @endphp
+                            <div class="flex items-center justify-center gap-1.5">
+                                <span class="w-4.5 h-4.5 rounded-full border border-slate-300 dark:border-slate-600 inline-block shadow-sm shrink-0" style="background-color: #{{ $item['color_code'] }}"></span>
+                                <span class="text-sm font-medium">{{ $colorObj?->name ?? $item['color_code'] }}</span>
+                            </div>
+                        </td>
+                        <td class="p-3 text-center font-bold">{{ $item['size'] }}</td>
+
                         <td class="p-3 text-center">
                             <form action="{{ route('cart.update') }}" method="POST" class="inline">
                                 @csrf
