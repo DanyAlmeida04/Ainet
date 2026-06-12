@@ -14,9 +14,25 @@
             --fs-text: #111827; /* dark text */
             --fs-muted: #6b7280;
             --card-bg: #ffffff;
+            --page-bg: #f3f4f6;
+            --nav-bg: #1e40af;
+            --footer-bg: #111827;
         }
 
-        body { color: var(--fs-text); }
+        /* Dark mode variables under .dark on root */
+        .dark {
+            --fs-primary: #60a5fa; /* lighter blue for dark bg */
+            --fs-primary-contrast: #0b1220;
+            --fs-green: #34d399;
+            --fs-text: #e6eef8; /* light text */
+            --fs-muted: #9ca3af;
+            --card-bg: #0b1220;
+            --page-bg: #071127;
+            --nav-bg: #041024;
+            --footer-bg: #021018;
+        }
+
+        body { color: var(--fs-text); background-color: var(--page-bg); }
 
         /* Make common utility colors slightly darker for better contrast */
         .bg-blue-600 { background-color: var(--fs-primary) !important; }
@@ -26,29 +42,42 @@
         /* Links default to primary color, but keep hover underline for affordance */
         a:not(.text-white) { color: var(--fs-primary); }
         /* Ensure anchors explicitly marked as text-white are rendered white (higher specificity) */
-        a.text-white { color: #ffffff !important; }
+        a.text-white { color: var(--fs-primary-contrast) !important; }
         a:hover { text-decoration: underline; }
 
         /* Ensure buttons with pale backgrounds have dark text */
         .bg-gray-100, .bg-gray-200, .bg-blue-50 { color: var(--fs-text) !important; }
 
+        /* Ensure cards use card background variable */
+        .card-bg { background-color: var(--card-bg); }
+
         /* Improve footer contrast */
-        footer { color: #d1d5db; }
+        footer { color: var(--fs-muted); background-color: var(--footer-bg); }
+
+        /* Profile dropdown explicit text color to avoid inheritance problems */
+        .profile-dropdown { color: var(--fs-text); }
+
     </style>
 </head>
-<body class="bg-gray-100 flex flex-col min-h-screen">
+<body class="bg-gray-100 flex flex-col min-h-screen" id="pageRoot">
 
-<nav class="bg-blue-800 text-white shadow-md">
+<nav class="bg-blue-800 text-white shadow-md" id="mainNav" style="background-color:var(--nav-bg)">
     <div class="container mx-auto px-4 py-4 flex justify-between items-center">
         <a href="/" class="text-2xl font-bold tracking-wider text-white">👕 Low Cortisol</a>
-        <div class="flex items-center space-x-6">
+        <div class="flex items-center space-x-4">
             <a href="{{ route('catalog.index') }}" class="hover:underline text-white">Catálogo</a>
             <a href="{{ route('cart.index') }}" class="hover:underline text-white">Carrinho</a>
 
             @auth
+                @can('manage-users')
+                    <a href="{{ route('admin.dashboard') }}" class="bg-white text-blue-800 px-3 py-1 rounded font-semibold hover:bg-gray-100">Admin</a>
+                @endcan
+
+                <button id="themeToggle" title="Alternar tema claro/escuro" class="px-3 py-1 rounded bg-gray-200 text-sm">Modo</button>
+
                 <div class="relative">
                     <button id="profileToggle" class="text-sm bg-blue-700 text-white px-3 py-1 rounded focus:outline-none">Olá, {{ Auth::user()->name }}</button>
-                    <div id="profileDropdown" class="absolute right-0 mt-2 hidden">
+                    <div id="profileDropdown" class="absolute right-0 mt-2 hidden profile-dropdown card-bg rounded shadow p-2">
                         @include('auth.quick_profile')
                     </div>
                 </div>
@@ -69,11 +98,12 @@
         @yield('content')
     </main>
 
-    <footer class="bg-gray-900 text-gray-300 py-6 text-center text-sm mt-12">
+    <footer class="py-6 text-center text-sm mt-12">
         &copy; {{ date('Y') }} FunShirt - Projecto de Aplicações para a Internet.
     </footer>
 
 <script>
+    // Profile dropdown toggle
     document.addEventListener('DOMContentLoaded', function() {
         var btn = document.getElementById('profileToggle');
         var dropdown = document.getElementById('profileDropdown');
@@ -83,9 +113,24 @@
                 dropdown.classList.toggle('hidden');
             });
             document.addEventListener('click', function(e) {
-                if (!btn.contains(e.target) && !dropdown.contains(e.target)) {
+                if (!btn.contains(e.target) && dropdown && !dropdown.contains(e.target)) {
                     dropdown.classList.add('hidden');
                 }
+            });
+        }
+
+        // Theme toggle
+        var themeToggle = document.getElementById('themeToggle');
+        var root = document.documentElement || document.getElementById('pageRoot');
+        var stored = localStorage.getItem('fs-theme');
+        if (stored === 'dark') {
+            document.documentElement.classList.add('dark');
+        }
+        if (themeToggle) {
+            themeToggle.addEventListener('click', function() {
+                document.documentElement.classList.toggle('dark');
+                var isDark = document.documentElement.classList.contains('dark');
+                localStorage.setItem('fs-theme', isDark ? 'dark' : 'light');
             });
         }
     });

@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Gate;
 use App\Jobs\GenerateReceiptJob;
 use App\Jobs\SendReceiptEmailJob;
 use Illuminate\Support\Facades\Log;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class OrderController extends Controller
 {
@@ -79,5 +80,54 @@ class OrderController extends Controller
         Log::info('Order ' . $order->id . ' canceled by admin.');
 
         return back()->with('success', 'Encomenda anulada.');
+    }
+
+    public function generateAndSend(Request $request, Order $order)
+    {
+        Gate::authorize('manage-users');
+
+        // Generate receipt synchronously
+        GenerateReceiptJob::dispatchSync($order->id);
+        $order->refresh();
+
+        // Send email if receipt now exists
+        if ($order->receipt_url) {
+            try {
+                SendReceiptEmailJob::dispatchSync($order->id);
+            } catch (\Throwable $e) {
+                Log::error('Admin generateAndSend: error sending email for order ' . $order->id . ': ' . $e->getMessage());
+            }
+        }
+
+        return back()->with('success', 'Recibo gerado e email enviado (se aplicável).');
+    }
+
+    public function preview(Order $order)
+    {
+        Gate::authorize('manage-users');
+
+        // If receipt not generated yet, generate it synchronously first
+        if (empty($order->receipt_url) || ! file_exists(storage_path('app/' . $order->receipt_url))) {
+            GenerateReceiptJob::dispatchSync($order->id);
+            $order->refresh();
+        }
+
+        // If receipt exists, stream it inline to browser
+        $pathsToTry = [
+            storage_path('app/' . ($order->receipt_url ?? '')),
+            storage_path('app/private/pdf_receipts/receipt_' . $order->id . '.pdf'),
+        ];
+
+        foreach ($pathsToTry as $p) {
+            if ($p && file_exists($p)) {
+                $content = @file_get_contents($p);
+                return response($content, 200, [
+                    'Content-Type' => 'application/pdf',
+                    'Content-Disposition' => 'inline; filename="recibo_' . $order->id . '.pdf"'
+                ]);
+            }
+        }
+
+        return back()->withErrors('Recibo não encontrado.');
     }
 }

@@ -31,8 +31,8 @@ class RegenerateReceipts extends Command
                 $shouldGenerate = $this->option('force') || empty($order->receipt_url);
                 // also check if file exists
                 if (!empty($order->receipt_url)) {
-                    $possible = storage_path('app/' . ltrim($order->receipt_url, '/'));
-                    if (!file_exists($possible)) {
+                    $possible = ltrim($order->receipt_url, '/');
+                    if (!Storage::exists($possible)) {
                         $shouldGenerate = true;
                     }
                 }
@@ -53,13 +53,15 @@ class RegenerateReceipts extends Command
                 $path = $dir . '/receipt_' . $order->id . '.pdf';
                 Storage::put($path, $output);
 
-                $full = storage_path('app/' . $path);
-                if (file_exists($full)) {
-                    $order->receipt_url = $path;
-                    $order->save();
+                // Always update DB with relative path so preview/download can use Storage
+                $order->receipt_url = $path;
+                $order->save();
+
+                // Verify existence via Storage
+                if (Storage::exists($path)) {
                     $this->info('  Regenerated and saved to ' . $path);
                 } else {
-                    $this->warn('  Could not save receipt for order ' . $order->id);
+                    $this->warn('  Stored but could not verify file via Storage::exists for order ' . $order->id . ' (path: ' . $path . ')');
                 }
             } catch (\Throwable $e) {
                 Log::error('Error regenerating receipt for order ' . $order->id . ': ' . $e->getMessage());

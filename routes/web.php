@@ -58,6 +58,8 @@ Route::middleware('auth')->group(function () {
 
     // Secure receipt download/view
     Route::get('/orders/{order}/receipt', [OrderController::class, 'downloadReceipt'])->name('orders.receipt');
+    // Preview (generate and view inline) available to owner and admin
+    Route::get('/orders/{order}/preview', [OrderController::class, 'preview'])->name('orders.preview');
 });
 
 // Admin routes (only admin users)
@@ -80,4 +82,8 @@ Route::middleware(['auth', 'is_admin'])->prefix('admin')->name('admin.')->group(
     Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
     Route::post('/orders/{order}/close', [AdminOrderController::class, 'close'])->name('orders.close');
     Route::post('/orders/{order}/cancel', [AdminOrderController::class, 'cancel'])->name('orders.cancel');
+
+    // New: generate & send receipt, and preview (generate if missing then redirect to receipt)
+    Route::post('/orders/{order}/generate-send', [AdminOrderController::class, 'generateAndSend'])->name('orders.generateSend');
+    Route::get('/orders/{order}/preview', [AdminOrderController::class, 'preview'])->name('orders.preview');
 });

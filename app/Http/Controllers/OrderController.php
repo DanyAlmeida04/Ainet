@@ -20,6 +20,7 @@ use App\Jobs\SendReceiptEmailJob;
 use App\Jobs\ThrottleSendReceiptJob;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
 
 class OrderController extends Controller
 {
@@ -190,27 +191,62 @@ class OrderController extends Controller
             return redirect()->route('orders.index')->withErrors('Recibo não disponível. Por favor, tente reenviar o recibo.');
         }
 
-        // Try a few possible locations in storage/app in case files were written to a different subfolder
-        $pathsToTry = [
-            storage_path('app/' . $order->receipt_url),
-            storage_path('app/private/pdf_receipts/receipt_' . $order->id . '.pdf'),
-            storage_path('app/public/pdf_receipts/receipt_' . $order->id . '.pdf'),
-            storage_path('app/receipt_' . $order->id . '.pdf'),
-        ];
+        // Build robust candidate paths for the receipt (handle relative, absolute and storage paths)
+        $pathsToTry = [];
+        $receipt = trim($order->receipt_url ?? '');
 
-        $found = null;
-        foreach ($pathsToTry as $p) {
-            if (file_exists($p)) {
-                $found = $p;
-                break;
+        if ($receipt !== '') {
+            // Ignore http(s) URLs for inline preview/download (they should be handled elsewhere)
+            if (! preg_match('/^https?:\/\//i', $receipt)) {
+                $storageApp = rtrim(storage_path('app'), "\/\\");
+
+                // If it's an absolute path on Windows (C:\...) or Unix(/...)
+                if (preg_match('/^[A-Za-z]:\\\\|^\\\\\\\\|^\//', $receipt)) {
+                    $pathsToTry[] = $receipt;
+                    // Also try realpath if available
+                    if (($real = realpath($receipt)) !== false) {
+                        $pathsToTry[] = $real;
+                    }
+                } elseif (str_contains($receipt, $storageApp)) {
+                    // It already contains full storage path
+                    $pathsToTry[] = $receipt;
+                    if (($real = realpath($receipt)) !== false) { $pathsToTry[] = $real; }
+                } else {
+                    // Treat as relative to storage/app
+                    $rel = ltrim(str_replace('\\', '/', $receipt), '/');
+                    $pathsToTry[] = $storageApp . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $rel);
+                    // If Storage::path is available on current disk, try that too
+                    try {
+                        if (method_exists(Storage::disk(), 'path')) {
+                            $diskPath = Storage::path(str_replace('\\', '/', $receipt));
+                            if ($diskPath) { $pathsToTry[] = $diskPath; }
+                        }
+                    } catch (\Throwable $e) {
+                        // ignore
+                    }
+                }
             }
         }
 
+        // Common fallback locations
+        $pathsToTry[] = storage_path('app/private/pdf_receipts/receipt_' . $order->id . '.pdf');
+        $pathsToTry[] = storage_path('app/public/pdf_receipts/receipt_' . $order->id . '.pdf');
+        $pathsToTry[] = storage_path('app/receipt_' . $order->id . '.pdf');
+
+        // Normalize unique entries preserving order
+        $pathsToTry = array_values(array_unique(array_filter($pathsToTry)));
+
+        $found = null;
+        foreach ($pathsToTry as $p) {
+            if (is_file($p)) { $found = $p; break; }
+        }
+
         if (! $found) {
+            Log::warning('DownloadReceipt: could not find receipt for order ' . $order->id . ' using receipt_url=' . $order->receipt_url . ' ; candidates: ' . implode(' | ', $pathsToTry));
             return redirect()->route('orders.index')->withErrors('Ficheiro do recibo não encontrado. Pode reenviar o recibo.');
         }
 
-        // If we found the file in a different place, update the saved receipt_url to the relative path under storage/app
+        // If we found the file in a different place, update the saved receipt_url to the relative path under storage/app when possible
         $relative = ltrim(str_replace(storage_path('app'), '', $found), DIRECTORY_SEPARATOR);
         if ($relative && $relative !== ltrim($order->receipt_url, '/')) {
             $order->receipt_url = $relative;
@@ -220,6 +256,7 @@ class OrderController extends Controller
         // Serve the PDF inline in the browser
         $content = @file_get_contents($found);
         if ($content === false) {
+            Log::error('DownloadReceipt: file exists but could not be read: ' . $found);
             return redirect()->route('orders.index')->withErrors('Não foi possível ler o ficheiro do recibo.');
         }
 
@@ -230,5 +267,88 @@ class OrderController extends Controller
         ];
 
         return response($content, 200, $headers);
+    }
+
+    // Secure view/preview of receipt for owner/admin: generate if missing and stream inline
+    public function preview(Order $order)
+    {
+        $this->authorize('view', $order);
+
+        // If receipt missing, attempt generation synchronously
+        if (empty($order->receipt_url) || ! (is_file(storage_path('app/' . ltrim($order->receipt_url, '/'))) || preg_match('/^[A-Za-z]:\\\\|^\\\\\\\\|^\//', $order->receipt_url))) {
+            GenerateReceiptJob::dispatchSync($order->id);
+            $order->refresh();
+        }
+
+        // Build candidate paths similar to downloadReceipt
+        $pathsToTry = [];
+        $receipt = trim($order->receipt_url ?? '');
+        if ($receipt !== '') {
+            if (! preg_match('/^https?:\/\//i', $receipt)) {
+                $storageApp = rtrim(storage_path('app'), "\/\\");
+                if (preg_match('/^[A-Za-z]:\\\\|^\\\\\\\\|^\//', $receipt)) {
+                    $pathsToTry[] = $receipt;
+                    if (($real = realpath($receipt)) !== false) { $pathsToTry[] = $real; }
+                } elseif (str_contains($receipt, $storageApp)) {
+                    $pathsToTry[] = $receipt;
+                    if (($real = realpath($receipt)) !== false) { $pathsToTry[] = $real; }
+                } else {
+                    $rel = ltrim(str_replace('\\', '/', $receipt), '/');
+                    $pathsToTry[] = $storageApp . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $rel);
+                    try {
+                        if (method_exists(Storage::disk(), 'path')) {
+                            $diskPath = Storage::path(str_replace('\\', '/', $receipt));
+                            if ($diskPath) { $pathsToTry[] = $diskPath; }
+                        }
+                    } catch (\Throwable $e) { }
+                }
+            }
+        }
+
+        $pathsToTry[] = storage_path('app/private/pdf_receipts/receipt_' . $order->id . '.pdf');
+        $pathsToTry[] = storage_path('app/public/pdf_receipts/receipt_' . $order->id . '.pdf');
+
+        $pathsToTry = array_values(array_unique(array_filter($pathsToTry)));
+
+        $found = null;
+        foreach ($pathsToTry as $p) {
+            if (is_file($p)) { $found = $p; break; }
+        }
+
+        if (! $found) {
+            Log::warning('Preview: could not find receipt for order ' . $order->id . ' ; receipt_url=' . ($order->receipt_url ?? 'NULL') . ' ; candidates: ' . implode(' | ', $pathsToTry));
+            return response()->view('orders.preview_error', ['message' => 'Recibo não encontrado. Por favor tente gerar ou reenviar o recibo.', 'path' => null, 'order' => $order]);
+        }
+
+        // Check readability
+        if (! is_readable($found)) {
+            Log::warning('Preview: file exists but not readable: ' . $found);
+
+            $relative = ltrim(str_replace(storage_path('app'), '', $found), DIRECTORY_SEPARATOR);
+            if ($relative && Storage::exists($relative)) {
+                try {
+                    $content = Storage::get($relative);
+                    return response($content, 200, [
+                        'Content-Type' => 'application/pdf',
+                        'Content-Disposition' => 'inline; filename="recibo_' . $order->id . '.pdf"'
+                    ]);
+                } catch (\Throwable $e) {
+                    Log::error('Preview fallback Storage::get failed for ' . $relative . ': ' . $e->getMessage());
+                    return response()->view('orders.preview_error', ['message' => 'Ficheiro encontrado, mas não foi possível ler através do sistema. Contacte o administrador.', 'path' => $found, 'order' => $order]);
+                }
+            }
+
+            return response()->view('orders.preview_error', ['message' => 'Ficheiro encontrado, mas não foi possível ler o ficheiro do recibo (permissões).', 'path' => $found, 'order' => $order]);
+        }
+
+        try {
+            return response()->file($found, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="recibo_' . $order->id . '.pdf"'
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Preview: error serving file ' . $found . ': ' . $e->getMessage());
+            return response()->view('orders.preview_error', ['message' => 'Não foi possível ler o ficheiro do recibo.', 'path' => $found, 'order' => $order]);
+        }
     }
 }

@@ -76,16 +76,6 @@
                             <div class="ml-auto">€ {{ number_format($o->total_price,2) }}</div>
                         </div>
                         <div class="text-sm text-gray-600">Status: {{ $o->status }}</div>
-                        <div class="mt-1">
-                            @if($o->receipt_url)
-                                <a href="{{ route('orders.receipt', $o) }}" class="text-blue-600">Ver Recibo</a>
-                            @else
-                                <form method="post" action="{{ route('orders.resendReceipt', $o) }}" class="inline">
-                                    @csrf
-                                    <button class="text-sm text-green-600">Gerar/Enviar Recibo</button>
-                                </form>
-                            @endif
-                        </div>
                     </div>
                 @endforeach
 
