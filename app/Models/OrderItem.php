@@ -12,7 +12,7 @@ class OrderItem extends Model
     use HasFactory;
 
     // Desativa os timestamps criados_at/updated_at se a tabela order_items não os tiver
-    public $timestamps = false; 
+    public $timestamps = false;
 
     // Relação: O item pertence a uma Encomenda
     public function order()

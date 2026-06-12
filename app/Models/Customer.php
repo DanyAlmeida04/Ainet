@@ -29,4 +29,16 @@ class Customer extends Model
     {
         return $this->belongsTo(User::class, 'id', 'id');
     }
+
+    // Relação: um cliente pode ter várias encomendas
+    public function orders()
+    {
+        return $this->hasMany(Order::class, 'customer_id', 'id');
+    }
+
+    // Relação: um cliente pode ter várias imagens privadas
+    public function tshirtImages()
+    {
+        return $this->hasMany(TshirtImage::class, 'customer_id', 'id');
+    }
 }

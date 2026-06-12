@@ -1,15 +1,18 @@
-<div class="p-4 bg-white rounded shadow w-72">
-    <div class="flex items-center gap-3 mb-3">
-        <img src="{{ asset('storage/photos/' . (Auth::user()->photo_url ?? 'anonymous.png')) }}" class="w-12 h-12 object-cover rounded-full">
+<div class="bg-white rounded shadow p-3 w-64">
+    <div class="flex items-center space-x-3">
+        <img src="{{ asset('storage/photos/' . (Auth::user()->photo_url ?? 'anonymous.png')) }}" alt="Avatar" class="w-10 h-10 rounded-full">
         <div>
-            <div class="font-semibold text-gray-900">{{ Auth::user()->name }}</div>
-            <div class="text-sm text-gray-600">{{ Auth::user()->email }}</div>
+            <div class="font-bold">{{ Auth::user()->name }}</div>
+            <div class="text-xs text-gray-500">{{ Auth::user()->email }}</div>
         </div>
     </div>
-
-    <div class="space-y-2">
-        <a href="{{ route('profile.show') }}" class="block text-left w-full bg-blue-700 text-white px-3 py-2 rounded text-white" style="color: #ffffff !important;">Ver Perfil</a>
-        <a href="{{ route('profile.show') }}#edit" class="block text-left w-full bg-gray-200 text-gray-900 px-3 py-2 rounded">Editar Perfil</a>
-        <a href="{{ route('orders.index') }}" class="block text-left w-full bg-gray-200 text-gray-900 px-3 py-2 rounded">As Minhas Encomendas</a>
+    <div class="mt-3">
+        <a href="{{ route('profile.show') }}" class="block text-sm">Perfil</a>
+        @can('manage-users')
+            <a href="{{ route('admin.dashboard') }}" class="block text-sm">Admin</a>
+        @endcan
+        @can('process-orders')
+            <a href="{{ route('admin.orders.index') }}" class="block text-sm">Área Funcionário</a>
+        @endcan
     </div>
 </div>

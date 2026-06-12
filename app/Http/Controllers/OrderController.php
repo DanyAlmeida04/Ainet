@@ -14,6 +14,12 @@ use App\Models\Price;
 use App\Models\Customer;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
+use App\Jobs\GenerateReceiptJob;
+use App\Jobs\SendReceiptEmailJob;
+use App\Jobs\ThrottleSendReceiptJob;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Gate;
 
 class OrderController extends Controller
 {
@@ -98,65 +104,29 @@ class OrderController extends Controller
             }
 
             // Gerar recibo em PDF e guardar em storage/app/private/pdf_receipts
-            $order->load('items');
-            $pdf = Pdf::loadView('orders.receipt', compact('order'));
-            // força papel A4 e render
-            try {
-                $pdf->setPaper('A4');
-            } catch (\Throwable $e) {
-                // alguns adaptadores podem não suportar setPaper; ignorar
-            }
-            $pdfOutput = $pdf->output();
-            $receiptPath = 'private/pdf_receipts/receipt_' . $order->id . '.pdf';
-            \Illuminate\Support\Facades\Storage::makeDirectory('private/pdf_receipts');
-            \Illuminate\Support\Facades\Storage::put($receiptPath, $pdfOutput);
+            // Dispatch a job to generate the receipt synchronously (so no DB changes required)
+            GenerateReceiptJob::dispatchSync($order->id);
 
-            // Confirma se o ficheiro foi realmente gravado (debug/log se necessário)
-            $fullReceiptPath = storage_path('app/' . $receiptPath);
-            if (! file_exists($fullReceiptPath)) {
-                // tentativa de fallback para 'public' disk
-                \Illuminate\Support\Facades\Storage::disk('public')->makeDirectory('pdf_receipts');
-                $publicPath = 'pdf_receipts/receipt_' . $order->id . '.pdf';
-                \Illuminate\Support\Facades\Storage::disk('public')->put($publicPath, $pdfOutput);
-                $fullPublicPath = storage_path('app/public/' . $publicPath);
-
-                if (file_exists($fullPublicPath)) {
-                    $order->receipt_url = 'public/' . $publicPath;
-                } else {
-                    Log::warning('Recibo gerado mas ficheiro não encontrado após Storage::put: ' . $fullReceiptPath);
-                    // definir como null para indicar que não existe
-                    $order->receipt_url = null;
-                }
-            } else {
-                $order->receipt_url = $receiptPath;
-            }
+            // Reload order to pick up updated receipt_url (if generated)
+            $order->refresh();
 
             // Atualizar a encomenda com o caminho do recibo
-            $order->save();
+            // $order already saved by job if created
 
             // Enviar email ao cliente com o recibo anexado
             $customer = Auth::user();
             try {
-                $receiptFullPath = storage_path('app/' . $receiptPath);
-                Mail::raw('Obrigado pela sua encomenda. Em anexo encontra o seu recibo.', function ($message) use ($customer, $receiptFullPath) {
-                    $message->to($customer->email)
-                            ->subject('Recibo da sua encomenda FunShirt');
-
-                    if (file_exists($receiptFullPath)) {
-                        $message->attach($receiptFullPath);
-                    } else {
-                        // fallback: não anexar se o ficheiro não existir
-                    }
-                });
-            } catch (\Throwable $e) {
-                Log::error('Erro ao enviar email do recibo: ' . $e->getMessage());
-                // não interromper o fluxo; a encomenda já foi criada
-            }
+                // Send email synchronously via job (will run inline with sync driver)
+                SendReceiptEmailJob::dispatchSync($order->id);
+             } catch (\Throwable $e) {
+                 Log::error('Erro ao enviar email do recibo: ' . $e->getMessage());
+                 // não interromper o fluxo; a encomenda já foi criada
+             }
 
             // Limpar carrinho
             Session::forget('cart');
 
-            return redirect()->route('cart.index')->with('success', 'Pagamento aceite. Encomenda criada e recibo enviado por e-mail.');
+            return redirect()->route('cart.index')->with('success', 'Pagamento aceite. Encomenda criada; o recibo será gerado e enviado por e-mail em breve.');
         }
 
         // Caso de erro do serviço — anexar detalhes à mensagem
@@ -174,28 +144,43 @@ class OrderController extends Controller
     // Resend receipt email
     public function resendReceipt(Request $request, Order $order)
     {
-        if ($order->customer_id != Auth::id()) {
-            abort(403);
+        $this->authorize('view', $order);
+
+        $cacheKey = 'resend:' . Auth::id() . ':' . $order->id;
+        $limit = 3; // allow 3 resends per hour
+        $window = 3600; // seconds
+
+        $count = Cache::get($cacheKey, 0);
+        if ($count >= $limit) {
+            return back()->withErrors('Limite de reenvios atingido. Tente mais tarde.');
+        }
+
+        // If receipt missing, try to generate first
+        if (empty($order->receipt_url) || !file_exists(storage_path('app/' . $order->receipt_url))) {
+            GenerateReceiptJob::dispatchSync($order->id);
+            $order->refresh();
+        }
+
+        $receiptFullPath = $order->receipt_url ? storage_path('app/' . $order->receipt_url) : null;
+        if (! $receiptFullPath || ! file_exists($receiptFullPath)) {
+            return back()->withErrors('Recibo não encontrado após tentativa de geração.');
         }
 
         try {
-            $receiptFullPath = storage_path('app/' . $order->receipt_url);
-            if (file_exists($receiptFullPath)) {
-                Mail::raw('Segue novamente o seu recibo em anexo.', function ($message) use ($order, $receiptFullPath) {
-                    $message->to($order->customer->user->email ?? '')->subject('Recibo - Encomenda #' . $order->id)->attach($receiptFullPath);
-                });
-                return back()->with('success', 'Recibo reenviado.');
-            }
-            return back()->withErrors('Recibo não encontrado.');
+            SendReceiptEmailJob::dispatchSync($order->id);
+            Cache::put($cacheKey, $count + 1, $window);
+            return back()->with('success', 'Recibo reenviado.');
         } catch (\Throwable $e) {
             Log::error('Erro ao reenviar recibo: ' . $e->getMessage());
             return back()->withErrors('Erro ao reenviar recibo.');
         }
     }
 
-    // Securely view/download receipt PDF (only owner)
+    // Securely view/download receipt PDF (only owner/admin)
     public function downloadReceipt(Order $order)
     {
+        $this->authorize('view', $order);
+
         // Ensure the authenticated user owns the order
         if ($order->customer_id !== Auth::id()) {
             abort(403);
