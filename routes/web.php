@@ -41,6 +41,7 @@ Route::middleware('guest')->group(function () {
 });
 
 // Rotas acessíveis apenas a utilizadores autenticados
+use App\Http\Controllers\UserTshirtImageController;
 Route::middleware('auth')->group(function () {
     // Logout
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
@@ -61,6 +62,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/orders/{order}/receipt', [OrderController::class, 'downloadReceipt'])->name('orders.receipt');
     // Preview (generate and view inline) available to owner and admin
     Route::get('/orders/{order}/preview', [OrderController::class, 'preview'])->name('orders.preview');
+
+    // Customer own t-shirt images
+    Route::get('/tshirt-images', [UserTshirtImageController::class, 'index'])->name('user.tshirt_images.index');
+    Route::get('/tshirt-images/create', [UserTshirtImageController::class, 'create'])->name('user.tshirt_images.create');
+    Route::post('/tshirt-images', [UserTshirtImageController::class, 'store'])->name('user.tshirt_images.store');
+    Route::get('/tshirt-images/{tshirt_image}/edit', [UserTshirtImageController::class, 'edit'])->name('user.tshirt_images.edit');
+    Route::put('/tshirt-images/{tshirt_image}', [UserTshirtImageController::class, 'update'])->name('user.tshirt_images.update');
+    Route::delete('/tshirt-images/{tshirt_image}', [UserTshirtImageController::class, 'destroy'])->name('user.tshirt_images.destroy');
 });
 
 // Admin routes (only admin users)
@@ -103,6 +112,16 @@ Route::middleware(['auth', \App\Http\Middleware\IsAdmin::class])->prefix('admin'
     Route::post('/orders/{order}/generate-send', [AdminOrderController::class, 'generateAndSend'])->name('orders.generateSend');
     Route::get('/orders/{order}/preview', [AdminOrderController::class, 'preview'])->name('orders.preview');
 });
+
+// Employee routes (only employee users)
+use App\Http\Controllers\Employee\OrderController as EmployeeOrderController;
+
+Route::middleware(['auth', \App\Http\Middleware\IsEmployee::class])->prefix('employee')->name('employee.')->group(function () {
+    Route::get('/orders', [EmployeeOrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/{order}', [EmployeeOrderController::class, 'show'])->name('orders.show');
+    Route::post('/orders/{order}/close', [EmployeeOrderController::class, 'close'])->name('orders.close');
+});
+
 
 // TEMP DEBUG: show current authenticated user and gate checks (remove after debugging)
 Route::get('/_admin_debug', function() {

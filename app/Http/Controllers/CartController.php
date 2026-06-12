@@ -6,10 +6,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use App\Models\TshirtImage;
 use App\Models\Price;
+use App\Models\UserTshirtImage;
 
 class CartController extends Controller
 {
-    // Mostrar o conteúdo do carrinho
+    // Show cart contents
     public function index()
     {
         $cart = Session::get('cart', []);
@@ -17,31 +18,45 @@ class CartController extends Controller
         return view('cart.index', compact('cart', 'priceConf'));
     }
 
-    // Adicionar item ao carrinho
+    // Add item to cart
     public function add(Request $request)
     {
         $data = $request->validate([
-            'tshirt_image_id' => 'required|exists:tshirt_images,id',
+            'tshirt_image_id' => 'required|integer',
             'color_code' => 'required|string',
             'size' => 'required|in:XS,S,M,L,XL',
             'qty' => 'required|integer|min:1',
+            'is_custom' => 'sometimes|boolean',
         ]);
 
-        $itemKey = $data['tshirt_image_id'] . '|' . $data['color_code'] . '|' . $data['size'];
+        $is_custom = $request->has('is_custom') && $data['is_custom'];
+        $image_id = $data['tshirt_image_id'];
+
+        if ($is_custom) {
+            $image = UserTshirtImage::findOrFail($image_id);
+            $this->authorize('view', $image);
+            $price = Price::current()->unit_price_own;
+        } else {
+            $image = TshirtImage::findOrFail($image_id);
+            $price = Price::current()->unit_price_catalog;
+        }
+
+        $itemKey = $image_id . '|' . $data['color_code'] . '|' . $data['size'] . '|' . (int)$is_custom;
 
         $cart = Session::get('cart', []);
 
         if (isset($cart[$itemKey])) {
             $cart[$itemKey]['qty'] += $data['qty'];
         } else {
-            $image = TshirtImage::find($data['tshirt_image_id']);
             $cart[$itemKey] = [
-                'tshirt_image_id' => $data['tshirt_image_id'],
+                'tshirt_image_id' => $image_id,
                 'name' => $image->name,
                 'image_url' => $image->image_url,
                 'color_code' => $data['color_code'],
                 'size' => $data['size'],
                 'qty' => $data['qty'],
+                'is_custom' => $is_custom,
+                'unit_price' => $price,
             ];
         }
 
@@ -50,7 +65,7 @@ class CartController extends Controller
         return redirect()->back()->with('success', 'Camisola adicionada com sucesso ao carrinho.');
     }
 
-    // Atualizar quantidade/atributos de um item do carrinho
+    // Update cart item quantity/attributes
     public function update(Request $request)
     {
         $data = $request->validate([

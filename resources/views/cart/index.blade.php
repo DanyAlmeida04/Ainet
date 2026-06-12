@@ -24,15 +24,14 @@
             <tbody>
                 @foreach($cart as $key => $item)
                     @php
-                        // calcular preço unitario com base em Price::current() simplificado
-                        $isOwn = false; // por agora assumimos catálogo
-                        $unit = $priceConf ? $priceConf->unit_price_catalog : 10.00;
+                        $unit = $item['unit_price'];
                         $sub = $unit * $item['qty'];
                         $total += $sub;
+                        $imageUrl = $item['is_custom'] ? asset('storage/tshirt_images_private/' . $item['image_url']) : asset('storage/tshirt_images/' . $item['image_url']);
                     @endphp
                     <tr class="border-b">
                         <td class="p-3 flex items-center gap-3">
-                            <img src="{{ asset('storage/tshirt_images/' . $item['image_url']) }}" alt="{{ $item['name'] }}" class="w-20 h-20 object-contain">
+                            <img src="{{ $imageUrl }}" alt="{{ $item['name'] }}" class="w-20 h-20 object-contain">
                             <div>
                                 <div class="font-semibold">{{ $item['name'] }}</div>
                             </div>

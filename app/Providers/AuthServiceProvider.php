@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\TshirtImage;
+use App\Policies\TshirtImagePolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 use App\Models\Order;
@@ -19,6 +21,7 @@ class AuthServiceProvider extends ServiceProvider
     protected $policies = [
         Order::class => OrderPolicy::class,
         User::class => UserPolicy::class,
+        TshirtImage::class => TshirtImagePolicy::class,
     ];
 
     /**
