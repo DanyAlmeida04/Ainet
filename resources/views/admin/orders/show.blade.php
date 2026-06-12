@@ -104,7 +104,7 @@
                                             <img src="{{ asset('storage/tshirt_base/' . $it->color_code . '.jpg') }}" class="w-full h-full object-contain pointer-events-none select-none">
                                         @endif
                                         @if($it->tshirtImage && $it->tshirtImage->image_url)
-                                            <img src="{{ asset('storage/tshirt_images/' . $it->tshirtImage->image_url) }}" class="absolute w-[36%] h-[36%] object-contain top-[28%] left-1/2 -translate-x-1/2 pointer-events-none select-none drop-shadow-sm opacity-95">
+                                            <img src="{{ $it->tshirtImage->isPrivate() ? route('tshirt-images.private', ['filename' => $it->tshirtImage->image_url]) : asset('storage/tshirt_images/' . $it->tshirtImage->image_url) }}" class="absolute w-[36%] h-[36%] object-contain top-[28%] left-1/2 -translate-x-1/2 pointer-events-none select-none drop-shadow-sm opacity-95">
                                         @else
                                             <div class="absolute inset-0 flex items-center justify-center bg-slate-200/10 text-[8px] text-slate-400 font-bold">Custom</div>
                                         @endif

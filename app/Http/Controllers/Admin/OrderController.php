@@ -108,7 +108,18 @@ class OrderController extends Controller
         $order->reason_for_cancellation = $request->reason ?? null;
         $order->save();
 
-        // Optionally notify customer via email (not implemented Mailable here)
+        $order->load('customer.user');
+
+        // Send email notification (Requisito G6)
+        if ($order->customer && $order->customer->user) {
+            try {
+                \Illuminate\Support\Facades\Mail::to($order->customer->user->email)->send(new \App\Mail\CanceledOrderMailable($order));
+                Log::info('Admin cancel order: cancellation email sent to ' . $order->customer->user->email);
+            } catch (\Throwable $e) {
+                Log::error('Admin cancel order: error sending cancellation email: ' . $e->getMessage());
+            }
+        }
+
         Log::info('Order ' . $order->id . ' canceled by admin.');
 
         return back()->with('success', 'Encomenda anulada.');

@@ -6,13 +6,17 @@
             <div class="text-xs text-gray-500">{{ Auth::user()->email }}</div>
         </div>
     </div>
-    <div class="mt-3">
-        <a href="{{ route('profile.show') }}" class="block text-sm">Perfil</a>
+    <div class="mt-3 space-y-1.5 border-t border-slate-100 dark:border-slate-800 pt-2.5">
+        <a href="{{ route('profile.show') }}" class="block text-sm font-semibold text-slate-700 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400">Meu Perfil</a>
+        @if(Auth::user()->user_type === 'C')
+            <a href="{{ route('profile.images.index') }}" class="block text-sm font-semibold text-slate-700 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400">As Minhas Imagens</a>
+            <a href="{{ route('orders.index') }}" class="block text-sm font-semibold text-slate-700 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400">Histórico de Encomendas</a>
+        @endif
         @can('manage-users')
-            <a href="{{ route('admin.dashboard') }}" class="block text-sm">Admin</a>
+            <a href="{{ route('admin.dashboard') }}" class="block text-sm font-semibold text-slate-700 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400">Painel Administrativo</a>
         @endcan
         @can('process-orders')
-            <a href="{{ route('admin.orders.index') }}" class="block text-sm">Área Funcionário</a>
+            <a href="{{ route('employee.orders.index') }}" class="block text-sm font-semibold text-slate-700 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400">Área do Funcionário</a>
         @endcan
     </div>
 </div>

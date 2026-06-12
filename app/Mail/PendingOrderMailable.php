@@ -1,0 +1,33 @@
+<?php
+
+namespace App\Mail;
+
+use Illuminate\Bus\Queueable;
+use Illuminate\Mail\Mailable;
+use Illuminate\Queue\SerializesModels;
+use App\Models\Order;
+
+class PendingOrderMailable extends Mailable
+{
+    use Queueable, SerializesModels;
+
+    public Order $order;
+
+    /**
+     * Create a new message instance.
+     */
+    public function __construct(Order $order)
+    {
+        $this->order = $order;
+    }
+
+    /**
+     * Build the message.
+     */
+    public function build()
+    {
+        return $this->subject('A sua encomenda foi registada — FunShirt #' . $this->order->id)
+                    ->view('emails.pending')
+                    ->with(['order' => $this->order]);
+    }
+}

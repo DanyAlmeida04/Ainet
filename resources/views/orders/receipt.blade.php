@@ -29,6 +29,7 @@
     <table class="items">
         <thead>
             <tr>
+                <th>Design</th>
                 <th>Produto</th>
                 <th>Cor</th>
                 <th>Tamanho</th>
@@ -40,8 +41,24 @@
         <tbody>
             @foreach($order->items as $it)
                 <tr>
+                    <td style="text-align: center; width: 50px; padding: 4px;">
+                        @if($it->tshirtImage && $it->tshirtImage->image_url)
+                            @php
+                                $imgPath = $it->tshirtImage->isPrivate()
+                                    ? storage_path('app/private/tshirt_images_private/' . $it->tshirtImage->image_url)
+                                    : public_path('storage/tshirt_images/' . $it->tshirtImage->image_url);
+                            @endphp
+                            @if(file_exists($imgPath))
+                                <img src="{{ $imgPath }}" style="width: 35px; height: 35px; object-fit: contain;" />
+                            @else
+                                <span style="font-size: 8px; color: #999;">N/A</span>
+                            @endif
+                        @else
+                            <span style="font-size: 8px; color: #999;">Custom</span>
+                        @endif
+                    </td>
                     <td>{{ $it->tshirtImage->name ?? $it->tshirt_image_id }}</td>
-                    <td>{{ $it->color_code }}</td>
+                    <td>{{ $it->color->name ?? $it->color_code }}</td>
                     <td>{{ $it->size }}</td>
                     <td class="right">{{ $it->qty }}</td>
                     <td class="right">€{{ number_format($it->unit_price, 2) }}</td>

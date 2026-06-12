@@ -42,6 +42,7 @@ class CartController extends Controller
                 'color_code' => $data['color_code'],
                 'size' => $data['size'],
                 'qty' => $data['qty'],
+                'is_private' => $image->isPrivate(),
             ];
         }
 

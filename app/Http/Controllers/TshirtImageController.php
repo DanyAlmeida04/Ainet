@@ -54,7 +54,7 @@ class TshirtImageController extends Controller
             $user = auth()->user();
             $customer = $user ? $user->customer : null;
             $isOwner = $customer && $customer->id === $tshirtImage->customer_id;
-            $isAdminOrStaff = $user && ($user->user_type === 'A' || $user->user_type === 'F');
+            $isAdminOrStaff = $user && ($user->user_type === 'A' || $user->user_type === 'E');
 
             if (!$isOwner && !$isAdminOrStaff) {
                 abort(403, 'Não tem permissão para aceder a esta imagem.');
@@ -68,5 +68,37 @@ class TshirtImageController extends Controller
         $priceConf = Price::current();
 
         return view('catalog.show', compact('tshirtImage', 'colors', 'priceConf'));
+    }
+
+    /**
+     * Stream a private t-shirt image safely to authenticated users with permissions.
+     */
+    public function streamPrivateImage($filename)
+    {
+        $path = 'private/tshirt_images_private/' . $filename;
+
+        if (! \Illuminate\Support\Facades\Storage::exists($path)) {
+            abort(404, 'Imagem não encontrada.');
+        }
+
+        // Find the record in tshirt_images table
+        $tshirtImage = TshirtImage::where('image_url', $filename)->first();
+
+        if ($tshirtImage && $tshirtImage->isPrivate()) {
+            $user = auth()->user();
+            $isOwner = $user && $user->id === $tshirtImage->customer_id;
+            $isAdminOrStaff = $user && ($user->user_type === 'A' || $user->user_type === 'E');
+
+            if (!$isOwner && !$isAdminOrStaff) {
+                abort(403, 'Não tem permissão para aceder a esta imagem.');
+            }
+        }
+
+        $fullPath = \Illuminate\Support\Facades\Storage::path($path);
+
+        return response()->file($fullPath, [
+            'Content-Type' => \Illuminate\Support\Facades\Storage::mimeType($path) ?? 'image/png',
+            'Cache-Control' => 'private, max-age=86400',
+        ]);
     }
 }

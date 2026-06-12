@@ -2,12 +2,19 @@
 
 @section('admin-content')
 
-    <div class="mt-4 flex justify-center">
-        <div class="inline-flex bg-white rounded shadow p-2">
-            <button data-range="6months" class="rangeBtn px-3 py-1 bg-blue-50 rounded">6 Meses</button>
-            <button data-range="month" class="rangeBtn px-3 py-1 ml-2">Mês</button>
-            <button data-range="week" class="rangeBtn px-3 py-1 ml-2">Semana</button>
-            <button data-range="lifetime" class="rangeBtn px-3 py-1 ml-2">Lifetime</button>
+    <div class="mt-4 flex flex-col items-center gap-3">
+        <div class="inline-flex bg-white rounded shadow p-2 border border-slate-100 dark:border-slate-800">
+            <button data-range="lifetime" class="rangeBtn px-3.5 py-1.5 bg-blue-50 rounded text-xs font-semibold cursor-pointer transition">Lifetime</button>
+            <button data-range="6months" class="rangeBtn px-3.5 py-1.5 ml-2 text-xs font-semibold cursor-pointer transition">6 Meses</button>
+            <button data-range="month" class="rangeBtn px-3.5 py-1.5 ml-2 text-xs font-semibold cursor-pointer transition">Mês</button>
+            <button data-range="week" class="rangeBtn px-3.5 py-1.5 ml-2 text-xs font-semibold cursor-pointer transition">Semana</button>
+        </div>
+
+        {{-- Navigator controls --}}
+        <div id="navControls" class="flex items-center gap-4 bg-white dark:bg-slate-900 rounded-xl shadow-sm px-4 py-2 border border-slate-200/60 dark:border-slate-800 hidden">
+            <button id="prevRangeBtn" class="px-3 py-1.5 text-xs text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 font-bold cursor-pointer transition hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">&larr; Anterior</button>
+            <span id="rangeDisplayLabel" class="text-xs font-bold text-slate-700 dark:text-slate-200 min-w-36 text-center"></span>
+            <button id="nextRangeBtn" class="px-3 py-1.5 text-xs text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 font-bold cursor-pointer transition hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">Seguinte &rarr;</button>
         </div>
     </div>
 
@@ -107,11 +114,11 @@
              try {
                  if (typeof Chart === 'undefined') throw new Error('Chart.js not loaded');
                  const safeFormat = function(v){ try { let num = (typeof v === 'object') ? (v.value ?? v.raw ?? v) : v; num = Number(num); if (isNaN(num)) return '€0'; return '€' + num.toLocaleString(); } catch(e){ return '€' + String(v); } };
-                 summaryChart = new Chart(summaryCtx, {
-                     type: 'bar',
-                     data: { labels: [], datasets: [ { type: 'bar', label: 'Encomendas', data: [], backgroundColor: '#60a5fa', yAxisID: 'y-orders' }, { type: 'line', label: 'Vendas (€)', data: [], borderColor: '#10b981', backgroundColor: '#10b981', tension: 0.2, yAxisID: 'y-sales' } ] },
-                     options: { responsive:true, animation: { duration: 700, easing: 'easeOutQuart' }, plugins:{ legend:{ position:'bottom' } }, scales: { 'y-orders':{ beginAtZero:true, position:'left', title:{ display:true, text:'Encomendas' } }, 'y-sales':{ beginAtZero:true, position:'right', title:{ display:true, text:'Vendas (€)' }, ticks:{ callback: safeFormat } } } }
-                 });
+                  summaryChart = new Chart(summaryCtx, {
+                      type: 'bar',
+                      data: { labels: [], datasets: [ { type: 'line', label: 'Vendas (€)', data: [], borderColor: '#10b981', backgroundColor: '#10b981', tension: 0.2, yAxisID: 'y-sales', order: 1 }, { type: 'bar', label: 'Encomendas', data: [], backgroundColor: '#60a5fa', yAxisID: 'y-orders', order: 2 } ] },
+                      options: { responsive:true, animation: { duration: 700, easing: 'easeOutQuart' }, plugins:{ legend:{ position:'bottom' } }, scales: { 'y-orders':{ beginAtZero:true, position:'left', title:{ display:true, text:'Encomendas' } }, 'y-sales':{ beginAtZero:true, position:'right', title:{ display:true, text:'Vendas (€)' }, ticks:{ callback: safeFormat } } } }
+                  });
              } catch (err) {
                  console.error('Failed to initialize main chart', err);
                  const errEl = document.getElementById('statsError'); if (errEl) { errEl.textContent = 'Erro ao inicializar o gráfico principal: ' + err.message; errEl.classList.remove('hidden'); }
@@ -143,28 +150,61 @@
                  }
              }
 
-             function loadRange(range){
+             let currentRange = 'lifetime';
+             let currentOffset = 0;
+
+             function loadRange(range, offset = 0){
+                 currentRange = range;
+                 currentOffset = offset;
+
                  const errEl = document.getElementById('statsError'); if (errEl) { errEl.classList.add('hidden'); errEl.textContent = ''; }
-                 fetch("{{ route('admin.dashboard.stats') }}?range="+range, { credentials:'include', headers:{ 'X-Requested-With':'XMLHttpRequest' } })
+                 fetch("{{ route('admin.dashboard.stats') }}?range="+range+"&offset="+offset, { credentials:'include', headers:{ 'X-Requested-With':'XMLHttpRequest' } })
                      .then(r=>{
                          if (r.redirected || r.status===401 || r.status===302 || r.status===403){ if (errEl) { errEl.textContent = 'Sessão expirada ou sem permissão. Recarregue e faça login.'; errEl.classList.remove('hidden'); } return Promise.reject(new Error('Unauthenticated')); }
                          return r.json();
                      })
-                     .then(json=>{
-                         summaryChart.data.labels = json.labels || [];
-                         summaryChart.data.datasets[0].data = json.counts || [];
-                         summaryChart.data.datasets[1].data = json.sums || [];
-                         summaryChart.update();
-
+                      .then(json=>{
+                          summaryChart.data.labels = json.labels || [];
+                          summaryChart.data.datasets[0].data = json.sums || [];
+                          summaryChart.data.datasets[1].data = json.counts || [];
+                          summaryChart.update();
+ 
                          // update top t-shirts list (with images)
                          updateTopList(json.topLabels || [], json.topValues || [], json.topImages || []);
+
+                         // update range navigation display
+                         const navCtrl = document.getElementById('navControls');
+                         const lbl = document.getElementById('rangeDisplayLabel');
+                         if (navCtrl && lbl) {
+                             if (range === 'lifetime') {
+                                 navCtrl.classList.add('hidden');
+                             } else {
+                                 navCtrl.classList.remove('hidden');
+                                 lbl.textContent = json.rangeLabel || '';
+                             }
+                         }
                      })
                      .catch(e=>{ console.error('Stats load error', e); if (errEl && !errEl.textContent) { errEl.textContent = 'Erro ao carregar estatísticas. Verifique a consola.'; errEl.classList.remove('hidden'); } });
              }
+ 
+              const rangeButtons = Array.from(document.querySelectorAll('.rangeBtn'));
+              rangeButtons.forEach(b=>{ b.addEventListener('click', function(){ rangeButtons.forEach(x=>x.classList.remove('bg-blue-50')); this.classList.add('bg-blue-50'); loadRange(this.dataset.range, 0); }); });
 
-             const rangeButtons = Array.from(document.querySelectorAll('.rangeBtn'));
-             rangeButtons.forEach(b=>{ b.addEventListener('click', function(){ rangeButtons.forEach(x=>x.classList.remove('bg-blue-50')); this.classList.add('bg-blue-50'); loadRange(this.dataset.range); }); });
-             const defaultBtn = rangeButtons.find(b=>b.dataset.range==='6months') || rangeButtons[0]; if (defaultBtn) { defaultBtn.classList.add('bg-blue-50'); loadRange(defaultBtn.dataset.range); }
+              // Bind navigator buttons
+              const prevBtn = document.getElementById('prevRangeBtn');
+              const nextBtn = document.getElementById('nextRangeBtn');
+              if (prevBtn) {
+                  prevBtn.addEventListener('click', function() {
+                      loadRange(currentRange, currentOffset - 1);
+                  });
+              }
+              if (nextBtn) {
+                  nextBtn.addEventListener('click', function() {
+                      loadRange(currentRange, currentOffset + 1);
+                  });
+              }
+
+              const defaultBtn = rangeButtons.find(b=>b.dataset.range==='lifetime') || rangeButtons[0]; if (defaultBtn) { defaultBtn.classList.add('bg-blue-50'); loadRange(defaultBtn.dataset.range, 0); }
          });
      </script>
  @endpush

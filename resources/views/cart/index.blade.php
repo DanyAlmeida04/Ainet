@@ -24,9 +24,24 @@
             <tbody>
                 @foreach($cart as $key => $item)
                     @php
-                        // calcular preço unitario com base em Price::current() simplificado
-                        $isOwn = false; // por agora assumimos catálogo
-                        $unit = $priceConf ? $priceConf->unit_price_catalog : 10.00;
+                        $isOwn = $item['is_private'] ?? false;
+                        $unit = 10.00;
+                        if ($priceConf) {
+                            $threshold = $priceConf->qty_discount ?? 0;
+                            if ($isOwn) {
+                                if ($threshold > 0 && $item['qty'] >= $threshold) {
+                                    $unit = $priceConf->unit_price_own_discount;
+                                } else {
+                                    $unit = $priceConf->unit_price_own;
+                                }
+                            } else {
+                                if ($threshold > 0 && $item['qty'] >= $threshold) {
+                                    $unit = $priceConf->unit_price_catalog_discount;
+                                } else {
+                                    $unit = $priceConf->unit_price_catalog;
+                                }
+                            }
+                        }
                         $sub = $unit * $item['qty'];
                         $total += $sub;
                     @endphp
@@ -36,7 +51,7 @@
                                 {{-- Base T-shirt --}}
                                 <img src="{{ asset('storage/tshirt_base/' . $item['color_code'] . '.jpg') }}" class="w-full h-full object-contain pointer-events-none select-none">
                                 {{-- Design Overlay --}}
-                                <img src="{{ asset('storage/tshirt_images/' . $item['image_url']) }}" class="absolute w-[36%] h-[36%] object-contain top-[28%] left-1/2 -translate-x-1/2 pointer-events-none select-none drop-shadow-sm opacity-90">
+                                <img src="{{ ($item['is_private'] ?? false) ? route('tshirt-images.private', ['filename' => $item['image_url']]) : asset('storage/tshirt_images/' . $item['image_url']) }}" class="absolute w-[36%] h-[36%] object-contain top-[28%] left-1/2 -translate-x-1/2 pointer-events-none select-none drop-shadow-sm opacity-90">
                             </div>
                             <div>
                                 <div class="font-semibold text-slate-900 dark:text-white">{{ $item['name'] }}</div>

@@ -41,32 +41,21 @@ class DashboardController extends Controller
                 ];
             });
 
-        // Monthly orders/sales for the last 6 months (labels, counts, sums)
-        $months = [];
-        $counts = [];
-        $sums = [];
-        $start = Carbon::now()->startOfMonth()->subMonths(5);
-
-        // Query grouped by year-month (works with SQLite strftime)
+        // Monthly orders/sales for lifetime (labels, counts, sums) (Requisito: lifetime default)
         $raw = Order::selectRaw("strftime('%Y-%m', date) as ym, count(*) as cnt, sum(total_price) as sum")
-            ->where('date', '>=', $start->toDateString())
             ->groupBy('ym')
             ->orderBy('ym')
-            ->get()
-            ->keyBy('ym');
+            ->get();
 
-        for ($i = 5; $i >= 0; $i--) {
-            $m = Carbon::now()->startOfMonth()->subMonths($i);
-            $label = $m->format('Y-m');
-            $months[] = $m->format('M Y');
-            if (isset($raw[$label])) {
-                $counts[] = (int) $raw[$label]->cnt;
-                $sums[] = (float) $raw[$label]->sum;
-            } else {
-                $counts[] = 0;
-                $sums[] = 0.0;
+        $months = $raw->pluck('ym')->map(function($v){
+            try {
+                return Carbon::createFromFormat('Y-m', $v)->format('M Y');
+            } catch (\Throwable $e) {
+                return $v;
             }
-        }
+        })->toArray();
+        $counts = $raw->pluck('cnt')->map(fn($v)=>(int)$v)->toArray();
+        $sums = $raw->pluck('sum')->map(fn($v)=>(float)$v)->toArray();
 
         // Prepare top tshirts labels and values
         $topLabels = $topTshirts->map(function($t){ return $t['image'] ? ($t['image']->name ?? 'Design #'.$t['image']->id) : 'Design'; })->toArray();
@@ -81,48 +70,89 @@ class DashboardController extends Controller
      */
     public function stats(Request $request)
     {
-        $range = $request->get('range', '6months');
+        $range = $request->get('range', 'lifetime');
+        $offset = (int) $request->get('offset', 0);
+
         $now = Carbon::now();
+        if ($offset !== 0) {
+            if ($range === 'week') {
+                $now->addWeeks($offset);
+            } elseif ($range === 'month') {
+                $now->addMonths($offset);
+            } elseif ($range === '6months') {
+                $now->addMonths(6 * $offset);
+            }
+        }
 
         // Determine date window
         switch ($range) {
             case 'week':
-                $start = $now->startOfWeek();
-                $groupFmt = "%Y-%m-%d"; // by day
+                $start = $now->copy()->startOfWeek();
+                $end = $now->copy()->endOfWeek();
                 $labels = [];
                 for ($i=0;$i<7;$i++) { $d = $start->copy()->addDays($i); $labels[] = $d->format('d M'); }
                 break;
             case 'month':
-                $start = $now->startOfMonth();
+                $start = $now->copy()->startOfMonth();
+                $end = $now->copy()->endOfMonth();
                 $days = $now->daysInMonth;
                 $labels = [];
                 for ($i=0;$i<$days;$i++) { $d = $start->copy()->addDays($i); $labels[] = $d->format('d M'); }
                 break;
             case 'lifetime':
                 $start = null;
-                $groupFmt = "%Y-%m"; // by month
+                $end = null;
                 $labels = null;
                 break;
             case '6months':
             default:
-                $start = $now->startOfMonth()->subMonths(5);
-                $groupFmt = "%Y-%m";
+                $start = $now->copy()->startOfMonth()->subMonths(5);
+                $end = $now->copy()->endOfMonth();
                 $labels = [];
-                for ($i = 5; $i >= 0; $i--) { $m = $now->copy()->startOfMonth()->subMonths($i); $labels[] = $m->format('M Y'); }
+                for ($i = 0; $i < 6; $i++) {
+                    $m = $start->copy()->addMonths($i);
+                    $labels[] = $m->format('M Y');
+                }
                 break;
+        }
+
+        // Compute Portuguese range label
+        $rangeLabel = '';
+        if ($range === 'week') {
+            $startOfWeek = $now->copy()->startOfWeek();
+            $endOfWeek = $now->copy()->endOfWeek();
+            $rangeLabel = $startOfWeek->format('d/m') . ' - ' . $endOfWeek->format('d/m/Y');
+        } elseif ($range === 'month') {
+            $monthsPt = [
+                1 => 'Janeiro', 2 => 'Fevereiro', 3 => 'Março', 4 => 'Abril',
+                5 => 'Maio', 6 => 'Junho', 7 => 'Julho', 8 => 'Agosto',
+                9 => 'Setembro', 10 => 'Outubro', 11 => 'Novembro', 12 => 'Dezembro'
+            ];
+            $rangeLabel = $monthsPt[$now->month] . ' ' . $now->year;
+        } elseif ($range === '6months') {
+            $startOf6 = $now->copy()->startOfMonth()->subMonths(5);
+            $monthsPt = [
+                1 => 'Jan', 2 => 'Fev', 3 => 'Mar', 4 => 'Abr',
+                5 => 'Mai', 6 => 'Jun', 7 => 'Jul', 8 => 'Ago',
+                9 => 'Set', 10 => 'Out', 11 => 'Nov', 12 => 'Dez'
+            ];
+            $rangeLabel = $monthsPt[$startOf6->month] . '/' . $startOf6->year . ' - ' . $monthsPt[$now->month] . '/' . $now->year;
+        } else {
+            $rangeLabel = 'Histórico Completo';
         }
 
         // Orders by status in window
         $ordersQ = Order::query();
         if ($start) { $ordersQ->where('date', '>=', $start->toDateString()); }
+        if ($end) { $ordersQ->where('date', '<=', $end->toDateString()); }
         $ordersByStatus = $ordersQ->selectRaw("status, count(*) as cnt")->groupBy('status')->pluck('cnt','status')->toArray();
 
         // Monthly (or grouped) counts and sums
         if ($range === 'week' || $range === 'month') {
             // group by day
-            $fmt = '%Y-%m-%d';
             $raw = Order::selectRaw("strftime('%Y-%m-%d', date) as ym, count(*) as cnt, sum(total_price) as sum")
                 ->where('date', '>=', $start->toDateString())
+                ->where('date', '<=', $end->toDateString())
                 ->groupBy('ym')
                 ->orderBy('ym')
                 ->get()
@@ -141,13 +171,14 @@ class DashboardController extends Controller
             $counts = $raw->pluck('cnt')->map(fn($v)=>(int)$v)->toArray();
             $sums = $raw->pluck('sum')->map(fn($v)=>(float)$v)->toArray();
         } else {
-            // 6months default
+            // 6months
             $raw = Order::selectRaw("strftime('%Y-%m', date) as ym, count(*) as cnt, sum(total_price) as sum")
                 ->where('date', '>=', $start->toDateString())
+                ->where('date', '<=', $end->toDateString())
                 ->groupBy('ym')->orderBy('ym')->get()->keyBy('ym');
             $counts = [];$sums = [];
-            for ($i = 5; $i >= 0; $i--) {
-                $m = $now->copy()->startOfMonth()->subMonths($i);
+            for ($i = 0; $i < 6; $i++) {
+                $m = $start->copy()->addMonths($i);
                 $k = $m->format('Y-m');
                 $counts[] = isset($raw[$k]) ? (int)$raw[$k]->cnt : 0;
                 $sums[] = isset($raw[$k]) ? (float)$raw[$k]->sum : 0.0;
@@ -161,13 +192,18 @@ class DashboardController extends Controller
         if ($start) {
             $itemsQ->join('orders','orders.id','=','order_items.order_id')->where('orders.date','>=',$start->toDateString());
         }
+        if ($end) {
+            if (!$start) {
+                $itemsQ->join('orders','orders.id','=','order_items.order_id');
+            }
+            $itemsQ->where('orders.date','<=',$end->toDateString());
+        }
         $items = $itemsQ->limit(10)->get();
         $topLabels = [];$topValues = [];$topImages = [];
         foreach ($items as $row) {
             $img = TshirtImage::find($row->tshirt_image_id);
             $topLabels[] = $img ? ($img->name ?? 'Design #'.$img->id) : 'Design';
             $topValues[] = (int)$row->total_qty;
-            // return image filename (frontend will resolve to /storage/tshirt_images/<file>)
             $topImages[] = $img ? ($img->image_url ?? 'default.png') : 'default.png';
         }
 
@@ -179,6 +215,7 @@ class DashboardController extends Controller
             'topLabels' => $topLabels,
             'topValues' => $topValues,
             'topImages' => $topImages,
+            'rangeLabel' => $rangeLabel,
         ]);
     }
 }

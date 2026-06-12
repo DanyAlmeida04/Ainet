@@ -115,24 +115,12 @@ class OrderController extends Controller
                 ]);
             }
 
-            // Gerar recibo em PDF e guardar em storage/app/private/pdf_receipts
-            // Dispatch a job to generate the receipt synchronously (so no DB changes required)
-            GenerateReceiptJob::dispatchSync($order->id);
-
-            // Reload order to pick up updated receipt_url (if generated)
-            $order->refresh();
-
-            // Atualizar a encomenda com o caminho do recibo
-            // $order already saved by job if created
-
-            // Enviar email ao cliente com o recibo anexado
-            $customer = Auth::user();
+            // Enviar email ao cliente com a notificacao de encomenda recebida/pendente
             try {
-                // Send email synchronously via job (will run inline with sync driver)
-                SendReceiptEmailJob::dispatchSync($order->id);
+                Mail::to(Auth::user()->email)->send(new \App\Mail\PendingOrderMailable($order));
+                Log::info('processPayment: pending email notification sent for order ' . $order->id);
              } catch (\Throwable $e) {
-                 Log::error('Erro ao enviar email do recibo: ' . $e->getMessage());
-                 // não interromper o fluxo; a encomenda já foi criada
+                 Log::error('Erro ao enviar email de notificacao pendente: ' . $e->getMessage());
              }
 
             // Limpar carrinho

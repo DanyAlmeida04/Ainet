@@ -62,6 +62,21 @@ Route::middleware('auth')->group(function () {
     Route::get('/orders/{order}/receipt', [OrderController::class, 'downloadReceipt'])->name('orders.receipt');
     // Preview (generate and view inline) available to owner and admin
     Route::get('/orders/{order}/preview', [OrderController::class, 'preview'])->name('orders.preview');
+
+    // G5: Client Private Images CRUD
+    Route::get('/profile/images', [\App\Http\Controllers\Customer\PersonalImageController::class, 'index'])->name('profile.images.index');
+    Route::post('/profile/images', [\App\Http\Controllers\Customer\PersonalImageController::class, 'store'])->name('profile.images.store');
+    Route::post('/profile/images/{tshirt_image}/destroy', [\App\Http\Controllers\Customer\PersonalImageController::class, 'destroy'])->name('profile.images.destroy');
+
+    // Secure private image streaming
+    Route::get('/private/tshirt-images/{filename}', [TshirtImageController::class, 'streamPrivateImage'])->name('tshirt-images.private');
+});
+
+// Employee routes (employees and admins)
+Route::middleware(['auth', \App\Http\Middleware\IsEmployee::class])->prefix('employee')->name('employee.')->group(function () {
+    Route::get('/orders', [\App\Http\Controllers\Employee\OrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/{order}', [\App\Http\Controllers\Employee\OrderController::class, 'show'])->name('orders.show');
+    Route::post('/orders/{order}/close', [\App\Http\Controllers\Employee\OrderController::class, 'close'])->name('orders.close');
 });
 
 // Admin routes (only admin users)
