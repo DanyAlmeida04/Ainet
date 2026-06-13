@@ -12,7 +12,7 @@
         </a>
     </div>
 
-    <form method="post" action="{{ route('admin.users.store') }}" class="space-y-6">
+    <form method="post" action="{{ route('admin.users.store') }}" enctype="multipart/form-data" class="space-y-6">
         @csrf
         
         <div>
@@ -81,6 +81,15 @@
             <label for="blocked" class="text-sm font-semibold text-slate-700 dark:text-slate-300 select-none cursor-pointer">
                 Criar como bloqueado (impede o login inicial)
             </label>
+        </div>
+
+        <div>
+            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Fotografia de Perfil</label>
+            <input type="file" name="photo" accept="image/*"
+                   class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-slate-200">
+            @error('photo')
+                <p class="text-xs text-red-500 mt-1.5">{{ $message }}</p>
+            @enderror
         </div>
 
         <div class="flex items-center gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">

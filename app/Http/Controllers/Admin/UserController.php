@@ -33,7 +33,12 @@ class UserController extends Controller
         }
 
         if ($request->filled('user_type')) {
-            $q->where('user_type', $request->user_type);
+            $userType = $request->user_type;
+            if ($userType === 'E') {
+                $q->whereIn('user_type', ['E', 'F']);
+            } else {
+                $q->where('user_type', $userType);
+            }
         }
 
         if ($request->filled('blocked')) {
@@ -58,9 +63,10 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
-            'user_type' => 'required|in:C,E,A',
+            'user_type' => 'required|in:C,E,F,A',
             'gender' => 'required|in:M,F',
             'blocked' => 'nullable|boolean',
+            'photo' => 'nullable|image|max:2048',
         ]);
 
         $user = User::create([
@@ -72,6 +78,14 @@ class UserController extends Controller
             'blocked' => $data['blocked'] ?? false,
             'photo_url' => 'anonymous.png',
         ]);
+
+        if ($request->hasFile('photo')) {
+            $file = $request->file('photo');
+            $filename = $user->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+            $file->storeAs('photos', $filename, 'public');
+            $user->photo_url = $filename;
+            $user->save();
+        }
 
         if ($user->user_type === 'C') {
             \App\Models\Customer::create([
@@ -97,8 +111,9 @@ class UserController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
-            'user_type' => 'required|in:C,E,A',
+            'user_type' => 'required|in:C,E,F,A',
             'blocked' => 'nullable|boolean',
+            'photo' => 'nullable|image|max:2048',
         ]);
 
         $user->update([
@@ -107,6 +122,18 @@ class UserController extends Controller
             'user_type' => $data['user_type'],
             'blocked' => $data['blocked'] ?? false,
         ]);
+
+        if ($request->hasFile('photo')) {
+            // Delete old photo if it exists and is not anonymous.png
+            if ($user->photo_url && $user->photo_url !== 'anonymous.png') {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete('photos/' . $user->photo_url);
+            }
+            $file = $request->file('photo');
+            $filename = $user->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+            $file->storeAs('photos', $filename, 'public');
+            $user->photo_url = $filename;
+            $user->save();
+        }
 
         return redirect()->route('admin.users.index')->with('success', 'Utilizador atualizado.');
     }
