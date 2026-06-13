@@ -12,6 +12,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Price;
 use App\Models\Customer;
+use App\Models\ReceiptReport;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -137,7 +138,7 @@ class OrderController extends Controller
     // List orders for authenticated customer
     public function index()
     {
-        $orders = Order::where('customer_id', Auth::id())->with('items.tshirtImage')->orderBy('date', 'desc')->paginate(12);
+        $orders = Order::where('customer_id', Auth::id())->with(['items.tshirtImage', 'receiptReports'])->orderBy('date', 'desc')->paginate(12);
         return view('orders.index', compact('orders'));
     }
 
@@ -145,8 +146,45 @@ class OrderController extends Controller
     public function show(Order $order)
     {
         $this->authorize('view', $order);
-        $order->load('items.tshirtImage');
+        $order->load(['items.tshirtImage', 'receiptReports']);
         return view('orders.show', compact('order'));
+    }
+
+    // Submit a receipt issue report
+    public function reportReceipt(Order $order)
+    {
+        $this->authorize('view', $order);
+
+        if ($order->status !== 'closed') {
+            return back()->withErrors('Apenas pode reportar recibos de encomendas fechadas.');
+        }
+
+        $exists = ReceiptReport::where('order_id', $order->id)->exists();
+        if ($exists) {
+            return back()->withErrors('Já enviou um reporte para este recibo.');
+        }
+
+        ReceiptReport::create([
+            'order_id' => $order->id,
+            'user_id' => Auth::id(),
+            'status' => 'pending',
+            'notified' => false,
+        ]);
+
+        return back()->with('success', 'Problema com o recibo reportado com sucesso. A administração irá analisar o seu caso.');
+    }
+
+    // Dismiss the resolution modal notification
+    public function dismissNotification(ReceiptReport $report)
+    {
+        if ($report->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $report->notified = true;
+        $report->save();
+
+        return back();
     }
 
     // Resend receipt email

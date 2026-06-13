@@ -32,4 +32,10 @@ class Order extends Model
     {
         return $this->hasMany(OrderItem::class, 'order_id', 'id');
     }
+
+    // Relação: Uma encomenda pode ter reportes de recibo
+    public function receiptReports()
+    {
+        return $this->hasMany(ReceiptReport::class, 'order_id', 'id');
+    }
 }

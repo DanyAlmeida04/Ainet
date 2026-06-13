@@ -23,6 +23,7 @@
                     ['route' => 'admin.users.index',       'label' => 'Utilizadores',    'match' => 'admin.users'],
                     ['route' => 'admin.categories.index',  'label' => 'Categorias',      'match' => 'admin.categories'],
                     ['route' => 'admin.designs.index',     'label' => 'Designs',         'match' => 'admin.designs'],
+                    ['route' => 'admin.reports.index',     'label' => 'Reports',         'match' => 'admin.reports'],
                     ['route' => 'admin.prices.edit',       'label' => 'Preços',          'match' => 'admin.prices'],
                 ];
             @endphp

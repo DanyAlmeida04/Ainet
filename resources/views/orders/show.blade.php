@@ -205,35 +205,51 @@
                            class="w-full flex items-center justify-center gap-1.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold py-2.5 px-4 rounded-xl text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer text-center">
                             Visualizar no Navegador
                         </a>
-
-                        <form action="{{ route('orders.resendReceipt', $order) }}" method="POST" class="pt-2">
-                            @csrf
-                            <button type="submit" class="w-full flex items-center justify-center gap-1.5 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50 text-slate-750 dark:text-slate-300 font-semibold py-2.5 px-4 rounded-xl text-sm transition cursor-pointer">
-                                Reenviar Recibo por Email
-                            </button>
-                        </form>
                     </div>
                 @else
-                    <div class="bg-amber-55/10 border border-amber-200/60 dark:border-amber-900/60 rounded-xl p-3.5 mb-5">
+                    <div class="bg-amber-55/10 border border-amber-200/60 dark:border-amber-900/60 rounded-xl p-3.5">
                         <span class="text-xs font-semibold text-amber-700 dark:text-amber-400 block">Recibo não gerado</span>
                         <p class="text-[11px] text-amber-600 dark:text-amber-500 mt-0.5 leading-normal">
                             Esta encomenda ainda não foi expedida ou faturada. A geração ocorrerá de forma automática.
                         </p>
                     </div>
+                @endif
 
-                    <div class="space-y-2.5">
-                        <a href="{{ route('orders.preview', $order) }}" target="_blank"
-                           class="w-full flex items-center justify-center gap-1.5 bg-slate-100 dark:bg-slate-800 text-slate-750 dark:text-slate-200 font-semibold py-2.5 px-4 rounded-xl text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer text-center">
-                            Gerar & Preview no Navegador
-                        </a>
-
-                        <form action="{{ route('orders.resendReceipt', $order) }}" method="POST" class="pt-2">
+                {{-- Receipt Issue Report Controls --}}
+                @if($order->status === 'closed')
+                    @php $rep = $order->receiptReports->first(); @endphp
+                    @if(!$rep)
+                        <form action="{{ route('orders.reportReceipt', $order) }}" method="POST" class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800" onsubmit="return confirm('Tem a certeza que deseja reportar um problema com o recibo da encomenda #{{ $order->id }}?');">
                             @csrf
-                            <button type="submit" class="w-full flex items-center justify-center gap-1.5 bg-blue-600 text-white font-semibold py-2.5 px-4 rounded-xl text-sm hover:bg-blue-700 transition cursor-pointer">
-                                Gerar & Enviar Recibo por Email
+                            <button type="submit" class="w-full flex items-center justify-center gap-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 font-semibold py-2.5 px-4 rounded-xl text-sm transition cursor-pointer dark:bg-rose-950/20 dark:border-rose-900/60 dark:text-rose-400 dark:hover:bg-rose-950/40">
+                                <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                                Reportar Problema com Recibo
                             </button>
                         </form>
-                    </div>
+                    @elseif($rep->status === 'pending')
+                        <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+                            <div class="bg-amber-50/50 dark:bg-amber-950/10 border border-amber-200/50 dark:border-amber-900/30 rounded-xl p-3 text-center">
+                                <span class="text-xs font-semibold text-amber-700 dark:text-amber-450 block">Reporte Pendente</span>
+                                <p class="text-[10px] text-amber-600 dark:text-amber-500 mt-1 leading-normal">O seu reporte de recibo está a ser analisado pela administração.</p>
+                            </div>
+                        </div>
+                    @elseif($rep->status === 'accepted')
+                        <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+                            <div class="bg-emerald-50/50 dark:bg-emerald-950/10 border border-emerald-200/50 dark:border-emerald-900/30 rounded-xl p-3 text-center">
+                                <span class="text-xs font-semibold text-emerald-700 dark:text-emerald-400 block">Reporte Resolvido</span>
+                                <p class="text-[10px] text-emerald-600 dark:text-emerald-500 mt-1 leading-normal">O problema foi resolvido e o recibo foi regenerado.</p>
+                            </div>
+                        </div>
+                    @elseif($rep->status === 'rejected')
+                        <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+                            <div class="bg-rose-50/50 dark:bg-rose-950/10 border border-rose-200/50 dark:border-rose-900/30 rounded-xl p-3 text-center">
+                                <span class="text-xs font-semibold text-rose-700 dark:text-rose-400 block">Reporte Recusado</span>
+                                <p class="text-[10px] text-rose-600 dark:text-rose-500 mt-1 leading-normal">O seu pedido foi analisado e recusado pela administração.</p>
+                            </div>
+                        </div>
+                    @endif
                 @endif
             </div>
 

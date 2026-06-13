@@ -58,6 +58,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
     Route::post('/orders/{order}/resend-receipt', [OrderController::class, 'resendReceipt'])->name('orders.resendReceipt');
+    Route::post('/orders/{order}/report', [OrderController::class, 'reportReceipt'])->name('orders.reportReceipt');
+    Route::post('/orders/report/{report}/dismiss', [OrderController::class, 'dismissNotification'])->name('orders.dismissNotification');
 
     // Secure receipt download/view
     Route::get('/orders/{order}/receipt', [OrderController::class, 'downloadReceipt'])->name('orders.receipt');
@@ -119,6 +121,10 @@ Route::middleware(['auth', \App\Http\Middleware\IsAdmin::class])->prefix('admin'
     // New: generate & send receipt, and preview (generate if missing then redirect to receipt)
     Route::post('/orders/{order}/generate-send', [AdminOrderController::class, 'generateAndSend'])->name('orders.generateSend');
     Route::get('/orders/{order}/preview', [AdminOrderController::class, 'preview'])->name('orders.preview');
+
+    // Reports moderation
+    Route::get('/reports', [\App\Http\Controllers\Admin\ReportController::class, 'index'])->name('reports.index');
+    Route::post('/reports/{report}/handle', [\App\Http\Controllers\Admin\ReportController::class, 'handle'])->name('reports.handle');
 
     // Designs management (CRUD)
     Route::get('/designs', [\App\Http\Controllers\Admin\TshirtImageController::class, 'index'])->name('designs.index');

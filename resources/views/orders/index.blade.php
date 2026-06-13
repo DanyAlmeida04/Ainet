@@ -102,7 +102,7 @@
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-semibold">
-                                    <div class="flex items-center justify-center gap-1">
+                                    <div class="flex items-center justify-center gap-1.5">
                                         {{-- View details eye icon --}}
                                         <a href="{{ route('orders.show', $order) }}" class="inline-flex items-center justify-center p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition" title="Ver Detalhes da Encomenda">
                                             <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -111,31 +111,42 @@
                                             </svg>
                                         </a>
 
-                                        {{-- PDF Receipt Download --}}
                                         @if($order->receipt_url)
+                                            {{-- PDF Receipt Download --}}
                                             <a href="{{ route('orders.receipt', $order) }}" target="_blank" class="inline-flex items-center justify-center p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-emerald-600 dark:hover:text-emerald-400 transition" title="Descarregar Recibo PDF">
                                                 <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                                 </svg>
                                             </a>
+
+                                            {{-- Preview Receipt --}}
+                                            <a href="{{ route('orders.preview', $order) }}" target="_blank" class="inline-flex items-center justify-center p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-indigo-600 dark:hover:text-indigo-400 transition" title="Visualizar Recibo no Navegador">
+                                                <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                </svg>
+                                            </a>
                                         @endif
 
-                                        {{-- Preview Receipt --}}
-                                        <a href="{{ route('orders.preview', $order) }}" target="_blank" class="inline-flex items-center justify-center p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-indigo-600 dark:hover:text-indigo-400 transition" title="Visualizar Recibo no Navegador">
-                                            <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                            </svg>
-                                        </a>
-
-                                        {{-- Generate/Resend Receipt Mails --}}
-                                        <form action="{{ route('orders.resendReceipt', $order) }}" method="POST" class="inline">
-                                            @csrf
-                                            <button type="submit" class="inline-flex items-center justify-center p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-rose-600 dark:hover:text-rose-455 transition cursor-pointer" title="{{ $order->receipt_url ? 'Reenviar Recibo por Email' : 'Gerar e Enviar Recibo por Email' }}">
-                                                <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                                </svg>
-                                            </button>
-                                        </form>
+                                        {{-- Receipt Issue Report Controls --}}
+                                        @if($order->status === 'closed')
+                                            @php $rep = $order->receiptReports->first(); @endphp
+                                            @if(!$rep)
+                                                <form action="{{ route('orders.reportReceipt', $order) }}" method="POST" class="inline" onsubmit="return confirm('Tem a certeza que deseja reportar um problema com o recibo da encomenda #{{ $order->id }}?');">
+                                                    @csrf
+                                                    <button type="submit" class="inline-flex items-center justify-center p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-rose-600 dark:hover:text-rose-400 transition cursor-pointer" title="Reportar Problema com Recibo">
+                                                        <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                                        </svg>
+                                                    </button>
+                                                </form>
+                                            @elseif($rep->status === 'pending')
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 dark:bg-amber-950/20 dark:text-amber-400 border border-amber-100 dark:border-amber-900/40" title="Problema reportado. A aguardar análise.">Reportado</span>
+                                            @elseif($rep->status === 'accepted')
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/40" title="Reporte resolvido. Recibo regenerado.">Resolvido</span>
+                                            @elseif($rep->status === 'rejected')
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-50 text-rose-700 dark:bg-rose-950/20 dark:text-rose-400 border border-rose-100 dark:border-rose-900/40" title="O seu reporte de recibo foi rejeitado.">Recusado</span>
+                                            @endif
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
