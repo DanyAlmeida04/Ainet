@@ -10,6 +10,15 @@
             <button data-range="week" class="rangeBtn px-4 py-2 ml-1 text-xs font-semibold rounded-lg transition-all cursor-pointer">Semana</button>
         </div>
 
+        <div class="flex items-center gap-3">
+            <a id="exportCsvBtn" href="#" class="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-4 rounded-xl text-xs transition shadow-sm cursor-pointer hover:no-underline">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Exportar para CSV
+            </a>
+        </div>
+
         {{-- Navigator controls --}}
         <div id="navControls" class="flex items-center gap-3 bg-white dark:bg-slate-900 rounded-2xl shadow-sm px-4 py-2.5 border border-slate-200/60 dark:border-slate-800 hidden">
             <button id="prevRangeBtn" class="px-3.5 py-1.5 text-xs text-slate-600 hover:text-white hover:bg-blue-600 dark:text-slate-300 dark:hover:bg-blue-500 font-bold cursor-pointer transition rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-1">
@@ -160,6 +169,11 @@
              function loadRange(range, offset = 0){
                  currentRange = range;
                  currentOffset = offset;
+
+                 const exportBtn = document.getElementById('exportCsvBtn');
+                 if (exportBtn) {
+                     exportBtn.href = "{{ route('admin.dashboard.export') }}?range=" + range + "&offset=" + offset;
+                 }
 
                  const errEl = document.getElementById('statsError'); if (errEl) { errEl.classList.add('hidden'); errEl.textContent = ''; }
                  fetch("{{ route('admin.dashboard.stats') }}?range="+range+"&offset="+offset, { credentials:'include', headers:{ 'X-Requested-With':'XMLHttpRequest' } })

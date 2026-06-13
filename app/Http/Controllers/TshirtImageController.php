@@ -54,7 +54,7 @@ class TshirtImageController extends Controller
             $user = auth()->user();
             $customer = $user ? $user->customer : null;
             $isOwner = $customer && $customer->id === $tshirtImage->customer_id;
-            $isAdminOrStaff = $user && ($user->user_type === 'A' || $user->user_type === 'E');
+            $isAdminOrStaff = $user && ($user->user_type === 'A' || $user->user_type === 'E' || $user->user_type === 'F');
 
             if (!$isOwner && !$isAdminOrStaff) {
                 abort(403, 'Não tem permissão para aceder a esta imagem.');
@@ -87,7 +87,7 @@ class TshirtImageController extends Controller
         if ($tshirtImage && $tshirtImage->isPrivate()) {
             $user = auth()->user();
             $isOwner = $user && $user->id === $tshirtImage->customer_id;
-            $isAdminOrStaff = $user && ($user->user_type === 'A' || $user->user_type === 'E');
+            $isAdminOrStaff = $user && ($user->user_type === 'A' || $user->user_type === 'E' || $user->user_type === 'F');
 
             if (!$isOwner && !$isAdminOrStaff) {
                 abort(403, 'Não tem permissão para aceder a esta imagem.');

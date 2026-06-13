@@ -218,4 +218,85 @@ class DashboardController extends Controller
             'rangeLabel' => $rangeLabel,
         ]);
     }
+
+    /**
+     * Export dynamic statistics data to CSV.
+     */
+    public function export(Request $request)
+    {
+        $range = $request->get('range', 'lifetime');
+        $offset = (int) $request->get('offset', 0);
+
+        $now = Carbon::now();
+        if ($offset !== 0) {
+            if ($range === 'week') {
+                $now->addWeeks($offset);
+            } elseif ($range === 'month') {
+                $now->addMonths($offset);
+            } elseif ($range === '5months') {
+                $now->addMonths(5 * $offset);
+            }
+        }
+
+        // Determine date window
+        switch ($range) {
+            case 'week':
+                $start = $now->copy()->startOfWeek();
+                $end = $now->copy()->endOfWeek();
+                break;
+            case 'month':
+                $start = $now->copy()->startOfMonth();
+                $end = $now->copy()->endOfMonth();
+                break;
+            case 'lifetime':
+                $start = null;
+                $end = null;
+                break;
+            case '5months':
+            default:
+                $start = $now->copy()->startOfMonth()->subMonths(4);
+                $end = $now->copy()->endOfMonth();
+                break;
+        }
+
+        // Retrieve orders list in the window
+        $q = Order::query()->with(['customer.user']);
+        if ($start) { $q->where('date', '>=', $start->toDateString()); }
+        if ($end) { $q->where('date', '<=', $end->toDateString()); }
+        $orders = $q->orderBy('date', 'desc')->get();
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="estatisticas_loja_' . $range . '.csv"',
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0'
+        ];
+
+        $callback = function() use ($orders) {
+            $file = fopen('php://output', 'w');
+            // Add UTF-8 BOM
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+            
+            // Header row
+            fputcsv($file, ['ID Encomenda', 'Cliente Nome', 'Cliente Email', 'Data', 'Total (€)', 'Estado', 'Tipo Pagamento', 'Referência Pagamento']);
+
+            foreach ($orders as $o) {
+                fputcsv($file, [
+                    $o->id,
+                    $o->customer->user->name ?? 'N/A',
+                    $o->customer->user->email ?? 'N/A',
+                    $o->date->format('Y-m-d'),
+                    $o->total_price,
+                    $o->status,
+                    $o->payment_type,
+                    $o->payment_ref
+                ]);
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
 }
+

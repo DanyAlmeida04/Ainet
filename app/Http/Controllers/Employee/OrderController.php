@@ -48,4 +48,21 @@ class OrderController extends Controller
 
         return redirect()->route('employee.orders.index')->with('success', 'Encomenda processada e marcada como fechada.');
     }
+
+    /**
+     * Redirect to the oldest pending order details.
+     */
+    public function processNext()
+    {
+        Gate::authorize('process-orders');
+
+        $nextOrder = Order::where('status', 'pending')->orderBy('date')->first();
+
+        if (!$nextOrder) {
+            return redirect()->route('employee.orders.index')->with('info', 'Excelente! Não há mais encomendas pendentes para processar.');
+        }
+
+        return redirect()->route('employee.orders.show', $nextOrder);
+    }
 }
+

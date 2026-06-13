@@ -25,7 +25,7 @@ class IsEmployee
             abort(403, 'Conta bloqueada.');
         }
 
-        if (! in_array($user->user_type, ['E', 'A'])) {
+        if (! in_array($user->user_type, ['E', 'F', 'A'])) {
             abort(403);
         }
 

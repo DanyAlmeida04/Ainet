@@ -26,6 +26,94 @@
         </a>
     </div>
 
+    {{-- Order Status Visual Timeline --}}
+    <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-800 p-6 mb-8">
+        <h3 class="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-4">Estado de Processamento</h3>
+        <div class="relative flex flex-col md:flex-row items-center justify-between gap-6">
+            
+            {{-- Background Track Line (hidden on small screen, flex-col layout) --}}
+            <div class="absolute top-1/2 left-4 right-4 h-0.5 -translate-y-1/2 bg-slate-100 dark:bg-slate-800 hidden md:block z-0">
+                <div class="h-full bg-blue-600 dark:bg-blue-500 transition-all duration-500" style="width: {{ $order->status === 'closed' ? '100%' : ($order->status === 'canceled' ? '100%' : '50%') }}"></div>
+            </div>
+
+            {{-- Step 1: Submetida --}}
+            <div class="relative flex items-center md:flex-col gap-4 md:gap-2 z-10 w-full md:w-auto text-left md:text-center">
+                <div class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-blue-600 text-white font-bold text-sm shadow-sm ring-4 ring-blue-50 dark:ring-blue-950/40">
+                    ✓
+                </div>
+                <div>
+                    <span class="text-xs font-bold text-slate-800 dark:text-white block">Pedido Registado</span>
+                    <span class="text-[10px] text-slate-400 dark:text-slate-500 block">{{ $order->date->format('d/m/Y') }}</span>
+                </div>
+            </div>
+
+            {{-- Step 2: Estampagem --}}
+            @if($order->status === 'canceled')
+                <div class="relative flex items-center md:flex-col gap-4 md:gap-2 z-10 w-full md:w-auto text-left md:text-center">
+                    <div class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-rose-600 text-white font-bold text-sm shadow-sm ring-4 ring-rose-50 dark:ring-rose-950/40">
+                        ✕
+                    </div>
+                    <div>
+                        <span class="text-xs font-bold text-rose-600 dark:text-rose-455 block">Cancelada</span>
+                        <span class="text-[10px] text-slate-400 dark:text-slate-500 block">Estampagem Interrompida</span>
+                    </div>
+                </div>
+            @else
+                <div class="relative flex items-center md:flex-col gap-4 md:gap-2 z-10 w-full md:w-auto text-left md:text-center">
+                    @if($order->status === 'closed')
+                        <div class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-blue-600 text-white font-bold text-sm shadow-sm ring-4 ring-blue-50 dark:ring-blue-950/40">
+                            ✓
+                        </div>
+                    @else
+                        <div class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-blue-600 text-white font-bold text-sm shadow-sm ring-4 ring-blue-50 dark:ring-blue-950/40 animate-pulse">
+                            ⚙
+                        </div>
+                    @endif
+                    <div>
+                        <span class="text-xs font-bold text-slate-800 dark:text-white block">Estampagem</span>
+                        <span class="text-[10px] text-slate-400 dark:text-slate-500 block">
+                            {{ $order->status === 'closed' ? 'Concluída' : 'Na fila de produção' }}
+                        </span>
+                    </div>
+                </div>
+            @endif
+
+            {{-- Step 3: Expedida --}}
+            @if($order->status === 'canceled')
+                <div class="relative flex items-center md:flex-col gap-4 md:gap-2 z-10 w-full md:w-auto text-left md:text-center">
+                    <div class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-rose-100 text-rose-600 dark:bg-rose-950/20 dark:text-rose-400 font-bold text-sm border border-rose-200 dark:border-rose-900/60 shadow-sm">
+                        ✕
+                    </div>
+                    <div>
+                        <span class="text-xs font-bold text-rose-600 dark:text-rose-400 block">Anulada</span>
+                        <span class="text-[10px] text-slate-400 dark:text-slate-500 block">Encomenda Anulada</span>
+                    </div>
+                </div>
+            @elseif($order->status === 'closed')
+                <div class="relative flex items-center md:flex-col gap-4 md:gap-2 z-10 w-full md:w-auto text-left md:text-center">
+                    <div class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-emerald-600 text-white font-bold text-sm shadow-sm ring-4 ring-emerald-50 dark:ring-emerald-950/40">
+                        ✓
+                    </div>
+                    <div>
+                        <span class="text-xs font-bold text-slate-800 dark:text-white block">Expedida & Faturada</span>
+                        <span class="text-[10px] text-slate-400 dark:text-slate-500 block">Recibo PDF Disponível</span>
+                    </div>
+                </div>
+            @else
+                <div class="relative flex items-center md:flex-col gap-4 md:gap-2 z-10 w-full md:w-auto text-left md:text-center">
+                    <div class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-600 font-bold text-sm border border-slate-200 dark:border-slate-700 shadow-sm">
+                        3
+                    </div>
+                    <div>
+                        <span class="text-xs font-bold text-slate-400 dark:text-slate-600 block">Expedida & Faturada</span>
+                        <span class="text-[10px] text-slate-400 dark:text-slate-600 block">A aguardar expedição</span>
+                    </div>
+                </div>
+            @endif
+
+        </div>
+    </div>
+
     @if(session('success'))
         <div class="mb-6 flex items-center gap-3 p-4 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-800 dark:text-emerald-300 rounded-xl border border-emerald-200/60 dark:border-emerald-900/60 shadow-sm">
             <svg class="w-5 h-5 flex-shrink-0 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">

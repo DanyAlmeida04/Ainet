@@ -38,7 +38,7 @@ class AuthServiceProvider extends ServiceProvider
         Gate::define('process-orders', function ($user) {
             if ($user->blocked) return false;
             $type = strtoupper((string) ($user->user_type ?? ''));
-            return in_array($type, ['E', 'EMPLOYEE', 'A', 'ADMIN']);
+            return in_array($type, ['E', 'EMPLOYEE', 'F', 'FUNCIONARIO', 'A', 'ADMIN']);
         });
 
         Gate::define('view-receipt', function ($user, $order) {

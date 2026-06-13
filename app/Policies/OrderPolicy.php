@@ -13,7 +13,7 @@ class OrderPolicy
     public function view(User $user, Order $order)
     {
         if ($user->blocked) return false;
-        if (in_array($user->user_type, ['A', 'E'])) return true; // admin or employee can view any order
+        if (in_array($user->user_type, ['A', 'E', 'F'])) return true; // admin or employee can view any order
         return $order->customer_id === $user->id; // owner can view
     }
 
@@ -23,7 +23,7 @@ class OrderPolicy
     public function close(User $user, Order $order)
     {
         if ($user->blocked) return false;
-        return in_array($user->user_type, ['E', 'A']);
+        return in_array($user->user_type, ['E', 'F', 'A']);
     }
 
     /**

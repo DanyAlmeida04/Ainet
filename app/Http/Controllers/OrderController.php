@@ -234,7 +234,7 @@ class OrderController extends Controller
 
         // Ensure the authenticated user is the owner, an administrator, or an employee
         $user = Auth::user();
-        if ($user->user_type !== 'A' && $user->user_type !== 'E' && $order->customer_id !== $user->id) {
+        if ($user->user_type !== 'A' && $user->user_type !== 'E' && $user->user_type !== 'F' && $order->customer_id !== $user->id) {
             abort(403);
         }
 

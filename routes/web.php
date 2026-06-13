@@ -78,6 +78,7 @@ Route::middleware('auth')->group(function () {
 // Employee routes (employees and admins)
 Route::middleware(['auth', \App\Http\Middleware\IsEmployee::class])->prefix('employee')->name('employee.')->group(function () {
     Route::get('/orders', [\App\Http\Controllers\Employee\OrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/next', [\App\Http\Controllers\Employee\OrderController::class, 'processNext'])->name('orders.next');
     Route::get('/orders/{order}', [\App\Http\Controllers\Employee\OrderController::class, 'show'])->name('orders.show');
     Route::post('/orders/{order}/close', [\App\Http\Controllers\Employee\OrderController::class, 'close'])->name('orders.close');
 });
@@ -92,6 +93,7 @@ use App\Http\Controllers\Admin\PriceController;
 Route::middleware(['auth', \App\Http\Middleware\IsAdmin::class])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/stats', [DashboardController::class, 'stats'])->name('dashboard.stats');
+    Route::get('/stats/export', [DashboardController::class, 'export'])->name('dashboard.export');
 
     // Users
     Route::get('/users', [UserController::class, 'index'])->name('users.index');

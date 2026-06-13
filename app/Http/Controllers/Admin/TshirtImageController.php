@@ -73,6 +73,7 @@ class TshirtImageController extends Controller
             'description' => 'nullable|string|max:1000',
             'category_id' => 'nullable|exists:categories,id',
             'image' => 'required|image|max:2048|mimes:png,jpeg,jpg,webp',
+            'notify_customers' => 'nullable|boolean',
         ]);
 
         if ($request->hasFile('image') && $request->file('image')->isValid()) {
@@ -81,7 +82,7 @@ class TshirtImageController extends Controller
             $path = $file->store('tshirt_images', 'public');
             $filename = basename($path);
 
-            TshirtImage::create([
+            $tshirtImage = TshirtImage::create([
                 'customer_id' => null, // Catalog design
                 'category_id' => $request->category_id,
                 'name' => $request->name,
@@ -89,7 +90,18 @@ class TshirtImageController extends Controller
                 'image_url' => $filename,
             ]);
 
-            return redirect()->route('admin.designs.index')->with('success', 'Design do catálogo criado com sucesso.');
+            if ($request->boolean('notify_customers')) {
+                $customers = \App\Models\User::where('user_type', 'C')->where('blocked', 0)->get();
+                foreach ($customers as $customer) {
+                    try {
+                        \Illuminate\Support\Facades\Mail::to($customer->email)->send(new \App\Mail\NewDesignNotificationMailable($tshirtImage, $customer));
+                    } catch (\Throwable $e) {
+                        \Illuminate\Support\Facades\Log::error('Erro ao enviar email de novo design para ' . $customer->email . ': ' . $e->getMessage());
+                    }
+                }
+            }
+
+            return redirect()->route('admin.designs.index')->with('success', 'Design do catálogo criado com sucesso e notificações enviadas (se aplicável).');
         }
 
         return back()->withInput()->withErrors(['image' => 'Ficheiro de imagem inválido.']);

@@ -74,6 +74,15 @@
                 </div>
             </div>
 
+            {{-- Notify Customers Checkbox --}}
+            <div class="flex items-center gap-2.5 p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-slate-850">
+                <input type="checkbox" name="notify_customers" id="notify_customers" value="1" {{ old('notify_customers') ? 'checked' : '' }}
+                       class="w-4 h-4 rounded text-blue-600 border-slate-300 focus:ring-blue-500 cursor-pointer">
+                <label for="notify_customers" class="text-xs font-semibold text-slate-750 dark:text-slate-300 cursor-pointer select-none">
+                    Enviar e-mail aos clientes a divulgar este novo design (Newsletter)
+                </label>
+            </div>
+
             <div class="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
                 <a href="{{ route('admin.designs.index') }}" class="px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition hover:no-underline">
                     Cancelar

@@ -13,10 +13,29 @@
         </div>
     @endif
 
+    @if(session('info'))
+        <div class="mb-6 flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-950/20 text-blue-800 dark:text-blue-300 rounded-xl border border-blue-200/60 dark:border-blue-900/60 shadow-sm animate-fade-in">
+            <svg class="w-5 h-5 flex-shrink-0 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span class="text-sm font-semibold">{{ session('info') }}</span>
+        </div>
+    @endif
+
     <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-800 overflow-hidden mb-6">
-        <div class="p-6 border-b border-slate-200/60 dark:border-slate-800">
-            <h2 class="text-2xl font-bold text-slate-800 dark:text-white">Fila de Encomendas Pendentes</h2>
-            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Área de Logística. Verifique, estampe e envie as t-shirts pedidas pelos clientes.</p>
+        <div class="p-6 border-b border-slate-200/60 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+                <h2 class="text-2xl font-bold text-slate-800 dark:text-white">Fila de Encomendas Pendentes</h2>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Área de Logística. Verifique, estampe e envie as t-shirts pedidas pelos clientes.</p>
+            </div>
+            @if($orders->count() > 0)
+                <a href="{{ route('employee.orders.next') }}" class="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs transition shadow-sm shrink-0 cursor-pointer text-center hover:no-underline">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    Processar Próxima
+                </a>
+            @endif
         </div>
 
         {{-- Pending Orders Table --}}
