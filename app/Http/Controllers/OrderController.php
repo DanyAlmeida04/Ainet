@@ -159,9 +159,14 @@ class OrderController extends Controller
             return back()->withErrors('Apenas pode reportar recibos de encomendas fechadas.');
         }
 
-        $exists = ReceiptReport::where('order_id', $order->id)->exists();
-        if ($exists) {
-            return back()->withErrors('Já enviou um reporte para este recibo.');
+        $reportsCount = ReceiptReport::where('order_id', $order->id)->count();
+        if ($reportsCount >= 3) {
+            return back()->withErrors('Atingiu o limite de 3 reportes para esta encomenda.');
+        }
+
+        $hasPending = ReceiptReport::where('order_id', $order->id)->where('status', 'pending')->exists();
+        if ($hasPending) {
+            return back()->withErrors('Já tem um reporte de recibo pendente para esta encomenda.');
         }
 
         ReceiptReport::create([

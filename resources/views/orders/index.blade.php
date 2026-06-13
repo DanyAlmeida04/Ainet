@@ -129,22 +129,35 @@
 
                                         {{-- Receipt Issue Report Controls --}}
                                         @if($order->status === 'closed')
-                                            @php $rep = $order->receiptReports->first(); @endphp
-                                            @if(!$rep)
+                                            @php
+                                                $reps = $order->receiptReports;
+                                                $repCount = $reps->count();
+                                                $latestRep = $reps->sortByDesc('created_at')->first();
+                                            @endphp
+
+                                            @if($repCount < 3 && (!$latestRep || $latestRep->status !== 'pending'))
                                                 <form action="{{ route('orders.reportReceipt', $order) }}" method="POST" class="inline" onsubmit="return confirm('Tem a certeza que deseja reportar um problema com o recibo da encomenda #{{ $order->id }}?');">
                                                     @csrf
-                                                    <button type="submit" class="inline-flex items-center justify-center p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-rose-600 dark:hover:text-rose-400 transition cursor-pointer" title="Reportar Problema com Recibo">
+                                                    <button type="submit" class="inline-flex items-center justify-center p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-rose-600 dark:hover:text-rose-400 transition cursor-pointer" title="Reportar Problema com Recibo ({{ $repCount }}/3)">
                                                         <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                                         </svg>
                                                     </button>
                                                 </form>
-                                            @elseif($rep->status === 'pending')
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 dark:bg-amber-950/20 dark:text-amber-400 border border-amber-100 dark:border-amber-900/40" title="Problema reportado. A aguardar análise.">Reportado</span>
-                                            @elseif($rep->status === 'accepted')
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/40" title="Reporte resolvido. Recibo regenerado.">Resolvido</span>
-                                            @elseif($rep->status === 'rejected')
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-50 text-rose-700 dark:bg-rose-950/20 dark:text-rose-400 border border-rose-100 dark:border-rose-900/40" title="O seu reporte de recibo foi rejeitado.">Recusado</span>
+                                            @endif
+
+                                            @if($latestRep)
+                                                @if($latestRep->status === 'pending')
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 dark:bg-amber-950/20 dark:text-amber-400 border border-amber-100 dark:border-amber-900/40" title="Problema reportado ({{ $repCount }}/3). A aguardar análise.">Reportado (Pendente)</span>
+                                                @elseif($latestRep->status === 'accepted')
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/40" title="Resolvido ({{ $repCount }}/3). Recibo gerado.">Resolvido</span>
+                                                @elseif($latestRep->status === 'rejected')
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-50 text-rose-700 dark:bg-rose-950/20 dark:text-rose-400 border border-rose-100 dark:border-rose-900/40" title="Recusado ({{ $repCount }}/3).">Recusado</span>
+                                                @endif
+                                            @endif
+
+                                            @if($repCount >= 3)
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700" title="Atingiu o limite de 3 reportes para esta encomenda.">Limite de Reportes</span>
                                             @endif
                                         @endif
                                     </div>
