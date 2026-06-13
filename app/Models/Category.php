@@ -12,6 +12,8 @@ class Category extends Model
 {
     use HasFactory, SoftDeletes;
 
+    public $timestamps = false;
+
     // Relação: Uma categoria tem muitas imagens de t-shirts no catálogo
     public function tshirtImages()
     {

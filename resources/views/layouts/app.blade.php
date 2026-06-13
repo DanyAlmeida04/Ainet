@@ -6,6 +6,8 @@
     <title>FunShirt - Loja Online</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
+        @variant dark (&:where(.dark, .dark *));
+
         :root{
             --fs-primary: #1e3a8a;
             --fs-primary-contrast: #ffffff;
@@ -35,9 +37,11 @@
         .bg-blue-600 { background-color: var(--fs-primary) !important; }
         .bg-blue-700 { background-color: #15326b !important; }
         .bg-green-600 { background-color: var(--fs-green) !important; }
-        a:not(.text-white) { color: var(--fs-primary); }
+        
+        /* Default links: color them only if they do NOT have an explicit Tailwind text- color class */
+        a:not([class*="text-"]) { color: var(--fs-primary); }
         a:hover { text-decoration: underline; }
-        .bg-gray-100, .bg-gray-200, .bg-blue-50 { color: var(--fs-text) !important; }
+        
         .card-bg { background-color: var(--card-bg); }
         footer { color: var(--fs-muted); background-color: var(--footer-bg); }
         .profile-dropdown { color: var(--fs-text); }
@@ -51,14 +55,19 @@
             color: var(--fs-text) !important;
         }
 
-        .dark .text-gray-500,
-        .dark .text-gray-600,
-        .dark .text-gray-700,
-        .dark .text-gray-800,
-        .dark .text-gray-900,
-        .dark .text-black {
-            color: var(--fs-text) !important;
-        }
+        /* Map common slate/gray background utilities to darker equivalents in dark mode */
+        .dark .bg-gray-50, .dark .bg-slate-50 { background-color: #0b1329 !important; }
+        .dark .bg-gray-100, .dark .bg-slate-100 { background-color: #0f172a !important; }
+        .dark .bg-gray-200, .dark .bg-slate-200 { background-color: #1e293b !important; }
+        .dark .bg-gray-305, .dark .bg-gray-300, .dark .bg-slate-300 { background-color: #334155 !important; }
+
+        /* Retain typographic hierarchy by mapping grays to corresponding slate/gray shades in dark mode */
+        .dark .text-black, .dark .text-gray-900, .dark .text-slate-900 { color: #f8fafc !important; }
+        .dark .text-gray-800, .dark .text-slate-800 { color: #f1f5f9 !important; }
+        .dark .text-gray-700, .dark .text-slate-700 { color: #e2e8f0 !important; }
+        .dark .text-gray-600, .dark .text-slate-600 { color: #cbd5e1 !important; }
+        .dark .text-gray-500, .dark .text-slate-500 { color: #94a3b8 !important; }
+        .dark .text-gray-400, .dark .text-slate-400 { color: #64748b !important; }
 
         .dark .text-blue-600 {
             color: #93c5fd !important;
@@ -68,11 +77,11 @@
             color: #e2e8f0 !important;
         }
 
+        /* Map border colors dynamically */
         .dark .border,
-        .dark .border-gray-100,
-        .dark .border-gray-200,
-        .dark .border-gray-300 {
-            border-color: #334155 !important;
+        .dark [class*="border-gray-"],
+        .dark [class*="border-slate-"] {
+            border-color: #1e293b !important;
         }
 
         .dark table {
@@ -85,11 +94,11 @@
         }
 
         .dark tbody tr {
-            border-color: #334155 !important;
+            border-color: #1e293b !important;
         }
 
         .dark tbody tr:nth-child(even) {
-            background-color: rgba(255, 255, 255, 0.03) !important;
+            background-color: rgba(255, 255, 255, 0.02) !important;
         }
 
         .dark input,
@@ -97,11 +106,11 @@
         .dark textarea {
             background-color: #0f172a !important;
             color: var(--fs-text) !important;
-            border-color: #334155 !important;
+            border-color: #1e293b !important;
         }
 
         .dark ::placeholder {
-            color: #94a3b8 !important;
+            color: #475569 !important;
         }
 
         .dark .text-yellow-800 {

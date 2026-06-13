@@ -118,6 +118,14 @@ Route::middleware(['auth', \App\Http\Middleware\IsAdmin::class])->prefix('admin'
     // New: generate & send receipt, and preview (generate if missing then redirect to receipt)
     Route::post('/orders/{order}/generate-send', [AdminOrderController::class, 'generateAndSend'])->name('orders.generateSend');
     Route::get('/orders/{order}/preview', [AdminOrderController::class, 'preview'])->name('orders.preview');
+
+    // Designs management (CRUD)
+    Route::get('/designs', [\App\Http\Controllers\Admin\TshirtImageController::class, 'index'])->name('designs.index');
+    Route::get('/designs/create', [\App\Http\Controllers\Admin\TshirtImageController::class, 'create'])->name('designs.create');
+    Route::post('/designs', [\App\Http\Controllers\Admin\TshirtImageController::class, 'store'])->name('designs.store');
+    Route::get('/designs/{tshirt_image}/edit', [\App\Http\Controllers\Admin\TshirtImageController::class, 'edit'])->name('designs.edit');
+    Route::post('/designs/{tshirt_image}', [\App\Http\Controllers\Admin\TshirtImageController::class, 'update'])->name('designs.update');
+    Route::post('/designs/{tshirt_image}/destroy', [\App\Http\Controllers\Admin\TshirtImageController::class, 'destroy'])->name('designs.destroy');
 });
 
 // TEMP DEBUG: show current authenticated user and gate checks (remove after debugging)

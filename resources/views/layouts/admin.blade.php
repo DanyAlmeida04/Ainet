@@ -22,6 +22,7 @@
                     ['route' => 'admin.orders.index',      'label' => 'Encomendas',      'match' => 'admin.orders'],
                     ['route' => 'admin.users.index',       'label' => 'Utilizadores',    'match' => 'admin.users'],
                     ['route' => 'admin.categories.index',  'label' => 'Categorias',      'match' => 'admin.categories'],
+                    ['route' => 'admin.designs.index',     'label' => 'Designs',         'match' => 'admin.designs'],
                     ['route' => 'admin.prices.edit',       'label' => 'Preços',          'match' => 'admin.prices'],
                 ];
             @endphp
