@@ -33,6 +33,15 @@ class User extends Authenticatable
     }
 
     /**
+     * Mutator to ensure 'E' (Employee) is mapped to 'F' (Funcionário) before saving to the database
+     * to satisfy SQLite ENUM/CHECK constraints.
+     */
+    public function setUserTypeAttribute($value)
+    {
+        $this->attributes['user_type'] = ($value === 'E') ? 'F' : $value;
+    }
+
+    /**
      * Relação 1 para 1: Um User pode ter um perfil de Customer.
      * O 'id' em ambas as tabelas faz a ligação.
      */

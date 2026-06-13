@@ -18,6 +18,14 @@
                 <h2 class="text-xl font-bold text-slate-800 dark:text-white">Gestão de Utilizadores</h2>
                 <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Visualize, filtre, edite e controle o estado dos utilizadores registados na FunShirt.</p>
             </div>
+            <div>
+                <a href="{{ route('admin.users.create') }}" class="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-xl text-sm transition shadow-sm hover:no-underline cursor-pointer">
+                    <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+                    Novo Utilizador
+                </a>
+            </div>
         </div>
 
         {{-- Filters Section --}}

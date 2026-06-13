@@ -24,45 +24,61 @@
                 {{-- Profile Photo Upload with Crop --}}
                 <div class="flex flex-col items-center gap-3 mb-6 bg-slate-50 dark:bg-slate-900/40 p-4 rounded-2xl border border-slate-100 dark:border-slate-800/80">
                     <label class="block text-sm font-bold text-gray-700 mb-1">Foto de Perfil</label>
-                    <div class="relative group cursor-pointer" id="avatarClickArea" title="Clique para alterar a foto de perfil">
-                        <img id="avatarPreview" 
-                             src="{{ asset('storage/photos/' . ($user->photo_url ?? 'anonymous.png')) }}" 
-                             alt="Avatar" 
-                             class="w-28 h-28 rounded-full object-cover border-4 border-white dark:border-slate-800 shadow-md group-hover:opacity-80 transition duration-150">
-                        <div class="absolute inset-0 flex items-center justify-center bg-black/40 text-white text-[10px] font-bold rounded-full opacity-0 group-hover:opacity-100 transition duration-150">
-                            Alterar Foto
+                    @php $isEmployee = Auth::user()->user_type === 'F' || Auth::user()->user_type === 'E'; @endphp
+                    @if($isEmployee)
+                        <div class="relative">
+                            <img id="avatarPreview" 
+                                 src="{{ asset('storage/photos/' . ($user->photo_url ?? 'anonymous.png')) }}" 
+                                 alt="Avatar" 
+                                 class="w-28 h-28 rounded-full object-cover border-4 border-white dark:border-slate-800 shadow-md">
                         </div>
-                    </div>
-                    
-                    <button type="button" id="uploadPhotoBtn" class="text-xs font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 cursor-pointer">
-                        Carregar nova imagem
-                    </button>
-                    
-                    <input type="file" id="avatarFileSelector" accept="image/*" class="hidden">
-                    <input type="hidden" name="photo_base64" id="photoBase64">
+                    @else
+                        <div class="relative group cursor-pointer" id="avatarClickArea" title="Clique para alterar a foto de perfil">
+                            <img id="avatarPreview" 
+                                 src="{{ asset('storage/photos/' . ($user->photo_url ?? 'anonymous.png')) }}" 
+                                 alt="Avatar" 
+                                 class="w-28 h-28 rounded-full object-cover border-4 border-white dark:border-slate-800 shadow-md group-hover:opacity-80 transition duration-150">
+                            <div class="absolute inset-0 flex items-center justify-center bg-black/40 text-white text-[10px] font-bold rounded-full opacity-0 group-hover:opacity-100 transition duration-150">
+                                Alterar Foto
+                            </div>
+                        </div>
+                        
+                        <button type="button" id="uploadPhotoBtn" class="text-xs font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 cursor-pointer">
+                            Carregar nova imagem
+                        </button>
+                        
+                        <input type="file" id="avatarFileSelector" accept="image/*" class="hidden">
+                        <input type="hidden" name="photo_base64" id="photoBase64">
+                    @endif
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Nome Completo *</label>
                     <input type="text" name="name" value="{{ old('name', $user->name) }}" required
-                           class="mt-1 w-full border border-gray-300 rounded px-3 py-2">
+                           class="mt-1 w-full border border-gray-300 rounded px-3 py-2 bg-gray-50 text-gray-500 disabled:opacity-75 disabled:cursor-not-allowed" {{ $isEmployee ? 'disabled readonly' : '' }}>
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700">NIF</label>
                     <input type="text" name="nif" value="{{ old('nif', $user->customer->nif ?? '') }}"
-                           class="mt-1 w-full border border-gray-300 rounded px-3 py-2">
+                           class="mt-1 w-full border border-gray-300 rounded px-3 py-2 bg-gray-50 text-gray-500 disabled:opacity-75 disabled:cursor-not-allowed" {{ $isEmployee ? 'disabled readonly' : '' }}>
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Morada</label>
                     <input type="text" name="address" value="{{ old('address', $user->customer->address ?? '') }}"
-                           class="mt-1 w-full border border-gray-300 rounded px-3 py-2">
+                           class="mt-1 w-full border border-gray-300 rounded px-3 py-2 bg-gray-50 text-gray-500 disabled:opacity-75 disabled:cursor-not-allowed" {{ $isEmployee ? 'disabled readonly' : '' }}>
                 </div>
 
-                <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded font-semibold hover:bg-blue-700">
-                    Atualizar Perfil
-                </button>
+                @if(!$isEmployee)
+                    <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded font-semibold hover:bg-blue-700">
+                        Atualizar Perfil
+                    </button>
+                @else
+                    <div class="text-xs text-center text-slate-500 font-semibold bg-slate-100 p-3 rounded-xl border border-slate-200 dark:bg-slate-800/40 dark:border-slate-800 dark:text-slate-400">
+                        A gestão dos dados do seu perfil é efetuada exclusivamente pela administração.
+                    </div>
+                @endif
             </form>
 
             <p class="text-sm text-center text-gray-600 mt-4">

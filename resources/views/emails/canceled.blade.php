@@ -1,21 +1,29 @@
-@extends('layouts.app')
+@extends('layouts.email')
 
 @section('content')
-<div class="container mx-auto px-4 py-8 max-w-xl">
-    <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/60 dark:border-slate-800 shadow-sm">
-        <h2 class="text-xl font-bold mb-3 text-rose-600 dark:text-rose-405">A sua encomenda foi anulada</h2>
-        <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">Olá <strong>{{ $order->customer->user->name ?? 'Cliente' }}</strong>,</p>
-        <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">Informamos que a sua encomenda <strong>#{{ $order->id }}</strong> foi anulada e o seu estado foi atualizado para cancelado.</p>
-        
-        @if($order->reason_for_cancellation)
-            <div class="bg-rose-50 dark:bg-rose-950/20 p-4 rounded-xl border border-rose-150 dark:border-rose-900/60 mb-4">
-                <span class="text-xs font-bold text-rose-800 dark:text-rose-400 block mb-1">Motivo da Anulação:</span>
-                <p class="text-xs text-rose-700 dark:text-rose-350 italic">"{{ $order->reason_for_cancellation }}"</p>
-            </div>
-        @endif
-        
-        <p class="text-sm text-slate-600 dark:text-slate-400">Se tiver alguma dúvida ou pretender informações adicionais sobre este processo, por favor contacte a nossa equipa.</p>
-        <p class="mt-6 text-sm text-slate-500 dark:text-slate-450 border-t border-slate-100 dark:border-slate-800 pt-4">Cumprimentos,<br><strong>Equipa FunShirt</strong></p>
+    <div class="badge" style="background-color: #fee2e2; color: #991b1b;">Cancelada</div>
+    <h2 style="color: #b91c1c;">A sua encomenda foi anulada</h2>
+    <p>Olá <strong>{{ $order->customer->user->name ?? 'Cliente' }}</strong>,</p>
+    <p>Informamos que a sua encomenda <strong>#{{ $order->id }}</strong> foi anulada e o seu estado foi atualizado para cancelado.</p>
+    
+    @if($order->reason_for_cancellation)
+        <div class="card" style="background-color: #fff5f5; border-color: #fee2e2;">
+            <h3 style="color: #991b1b; margin-bottom: 8px;">Motivo da Anulação</h3>
+            <p style="font-size: 13px; color: #7f1d1d; font-style: italic; margin-bottom: 0;">
+                "{{ $order->reason_for_cancellation }}"
+            </p>
+        </div>
+    @endif
+    
+    <p>Se tiver alguma dúvida ou pretender informações adicionais sobre este processo, por favor não hesite em contactar a nossa equipa de suporte.</p>
+    
+    <div style="text-align: center; margin: 24px 0;">
+        <a href="{{ route('orders.show', $order) }}" class="btn-secondary">Ver Detalhes na Loja</a>
     </div>
-</div>
+
+    <p style="border-top: 1px solid #e5e7eb; padding-top: 16px; margin-top: 24px; font-size: 13px; color: #6b7280; line-height: 1.5;">
+        Cumprimentos,<br>
+        <strong>Equipa FunShirt</strong>
+    </p>
 @endsection
+

@@ -162,4 +162,68 @@ class PremiumWorkflowFeaturesTest extends TestCase
             return $mail->hasTo($this->adminUser->email) || $mail->hasTo($this->employeeUser->email);
         });
     }
+
+    public function test_admin_can_create_new_user_and_customer_record_is_created_if_type_is_c(): void
+    {
+        $response = $this->actingAs($this->adminUser)
+            ->get(route('admin.users.create'));
+
+        $response->assertStatus(200);
+
+        $response = $this->actingAs($this->adminUser)
+            ->post(route('admin.users.store'), [
+                'name' => 'New Customer',
+                'email' => 'newcustomer@test.com',
+                'password' => 'newpassword123',
+                'password_confirmation' => 'newpassword123',
+                'user_type' => 'C',
+                'gender' => 'M',
+            ]);
+
+        $response->assertRedirect(route('admin.users.index'));
+        $this->assertDatabaseHas('users', [
+            'name' => 'New Customer',
+            'email' => 'newcustomer@test.com',
+            'user_type' => 'C',
+        ]);
+        $newUser = User::where('email', 'newcustomer@test.com')->first();
+        $this->assertDatabaseHas('customers', [
+            'id' => $newUser->id,
+        ]);
+    }
+
+    public function test_admin_can_create_new_employee_without_customer_record(): void
+    {
+        $response = $this->actingAs($this->adminUser)
+            ->post(route('admin.users.store'), [
+                'name' => 'New Employee',
+                'email' => 'newemployee@test.com',
+                'password' => 'newpassword123',
+                'password_confirmation' => 'newpassword123',
+                'user_type' => 'E',
+                'gender' => 'F',
+            ]);
+
+        $response->assertRedirect(route('admin.users.index'));
+        $this->assertDatabaseHas('users', [
+            'name' => 'New Employee',
+            'email' => 'newemployee@test.com',
+            'user_type' => 'F',
+        ]);
+        $newUser = User::where('email', 'newemployee@test.com')->first();
+        $this->assertDatabaseMissing('customers', [
+            'id' => $newUser->id,
+        ]);
+    }
+
+    public function test_non_admin_cannot_access_create_user(): void
+    {
+        $response = $this->actingAs($this->customerUser)
+            ->get(route('admin.users.create'));
+        $response->assertStatus(403);
+
+        $response = $this->actingAs($this->employeeUser)
+            ->get(route('admin.users.create'));
+        $response->assertStatus(403);
+    }
 }

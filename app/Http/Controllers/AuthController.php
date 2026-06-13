@@ -112,6 +112,9 @@ class AuthController extends Controller
 
     public function updateProfile(Request $request)
     {
+        if (Auth::user()->user_type === 'F' || Auth::user()->user_type === 'E') {
+            abort(403, 'Os funcionários não possuem permissões para alterar os dados da sua conta.');
+        }
         $user = Auth::user();
 
         $data = $request->validate([

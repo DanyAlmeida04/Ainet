@@ -96,7 +96,11 @@
                     <button class="bg-gray-500 text-white px-4 py-2 rounded cursor-pointer transition hover:underline">Limpar Carrinho</button>
                 </form>
 
-                <a href="{{ route('checkout') }}" class="bg-green-600 text-white px-4 py-2 rounded">Finalizar Compra</a>
+                @if(!auth()->check() || auth()->user()->user_type === 'C')
+                    <a href="{{ route('checkout') }}" class="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-semibold transition hover:no-underline shadow-sm">Finalizar Compra</a>
+                @else
+                    <span class="text-sm text-rose-600 dark:text-rose-400 font-semibold self-center bg-rose-50 dark:bg-rose-950/20 px-3.5 py-2 rounded-xl border border-rose-100 dark:border-rose-900/40">Apenas clientes podem efetuar compras.</span>
+                @endif
             </div>
         </div>
     @endif

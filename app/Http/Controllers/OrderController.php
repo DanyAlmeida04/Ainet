@@ -38,6 +38,10 @@ class OrderController extends Controller
             return redirect()->route('login');
         }
 
+        if (Auth::user()->user_type !== 'C') {
+            abort(403, 'Apenas clientes têm acesso ao checkout.');
+        }
+
         $cart = Session::get('cart', []);
         $priceConf = Price::current();
         $customer = Auth::user()->customer ?? null;
@@ -50,6 +54,10 @@ class OrderController extends Controller
     {
         if (! Auth::check()) {
             return redirect()->route('login');
+        }
+
+        if (Auth::user()->user_type !== 'C') {
+            abort(403, 'Apenas clientes têm acesso ao checkout.');
         }
 
         $data = $request->validate([

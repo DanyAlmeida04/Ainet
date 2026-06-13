@@ -44,6 +44,46 @@ class UserController extends Controller
         return view('admin.users.index', compact('users'));
     }
 
+    public function create()
+    {
+        $this->ensureAdmin();
+        return view('admin.users.create');
+    }
+
+    public function store(Request $request)
+    {
+        $this->ensureAdmin();
+
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email',
+            'password' => 'required|string|min:8|confirmed',
+            'user_type' => 'required|in:C,E,A',
+            'gender' => 'required|in:M,F',
+            'blocked' => 'nullable|boolean',
+        ]);
+
+        $user = User::create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => bcrypt($data['password']),
+            'user_type' => $data['user_type'],
+            'gender' => $data['gender'],
+            'blocked' => $data['blocked'] ?? false,
+            'photo_url' => 'anonymous.png',
+        ]);
+
+        if ($user->user_type === 'C') {
+            \App\Models\Customer::create([
+                'id' => $user->id,
+                'nif' => null,
+                'address' => null,
+            ]);
+        }
+
+        return redirect()->route('admin.users.index')->with('success', 'Utilizador criado com sucesso.');
+    }
+
     public function edit(User $user)
     {
         $this->ensureAdmin();
