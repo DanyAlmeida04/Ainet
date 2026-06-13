@@ -118,14 +118,46 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'nif' => 'nullable|digits:9',
             'address' => 'nullable|string|max:255',
+            'photo_base64' => 'nullable|string',
         ]);
 
-        // Update user and customer
-        $user->update(['name' => $data['name']]);
-        $user->customer()->update([
-            'nif' => $data['nif'] ?? null,
-            'address' => $data['address'] ?? null,
-        ]);
+        // Update user name
+        $user->name = $data['name'];
+
+        // Handle profile photo upload and crop
+        if ($request->filled('photo_base64')) {
+            $base64 = $request->input('photo_base64');
+            if (preg_match('/^data:image\/(\w+);base64,/', $base64, $matches)) {
+                $type = strtolower($matches[1]);
+                $base64 = substr($base64, strpos($base64, ',') + 1);
+                $base64 = base64_decode($base64);
+
+                if ($base64 !== false) {
+                    $extension = in_array($type, ['jpeg', 'jpg', 'png', 'gif', 'webp']) ? $type : 'jpg';
+                    $filename = $user->id . '_' . time() . '.' . $extension;
+
+                    // Store photo in storage/app/public/photos
+                    \Illuminate\Support\Facades\Storage::disk('public')->put('photos/' . $filename, $base64);
+
+                    // Delete old photo if it exists and is not anonymous.png
+                    if ($user->photo_url && $user->photo_url !== 'anonymous.png') {
+                        \Illuminate\Support\Facades\Storage::disk('public')->delete('photos/' . $user->photo_url);
+                    }
+
+                    $user->photo_url = $filename;
+                }
+            }
+        }
+
+        $user->save();
+
+        // Update customer details if customer exists
+        if ($user->customer) {
+            $user->customer->update([
+                'nif' => $data['nif'] ?? null,
+                'address' => $data['address'] ?? null,
+            ]);
+        }
 
         return back()->with('success', 'Perfil atualizado com sucesso.');
     }
