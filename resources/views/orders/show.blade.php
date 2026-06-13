@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container mx-auto px-4 py-8 max-w-5xl animate-fade-in">
+<div class="container mx-auto px-4 py-8 max-w-7xl animate-fade-in">
     
     {{-- Header / Breadcrumbs --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
