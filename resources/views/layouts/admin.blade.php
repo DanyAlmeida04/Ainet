@@ -25,6 +25,7 @@
                     ['route' => 'admin.designs.index',     'label' => 'Designs',         'match' => 'admin.designs'],
                     ['route' => 'admin.reports.index',     'label' => 'Reports',         'match' => 'admin.reports'],
                     ['route' => 'admin.prices.edit',       'label' => 'Preços',          'match' => 'admin.prices'],
+                    ['route' => 'admin.colors.index',      'label' => 'Cores',           'match' => 'admin.colors'],
                 ];
             @endphp
 

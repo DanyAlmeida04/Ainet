@@ -90,10 +90,13 @@ class AuthController extends Controller
             'address' => $request->address,
         ]);
 
+        // Disparar evento de registo para enviar e-mail de verificação
+        event(new \Illuminate\Auth\Events\Registered($user));
+
         // Fazer login automático ao utilizador acabado de criar
         Auth::login($user);
 
-        return redirect()->route('catalog.index')->with('success', 'Conta criada com sucesso! Bem-vindo à FunShirt.');
+        return redirect()->route('catalog.index')->with('success', 'Conta criada com sucesso! Verifique o seu e-mail para confirmar a sua conta.');
     }
 
     // 5. Fazer Logout

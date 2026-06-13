@@ -16,6 +16,7 @@ class Color extends Model
     protected $primaryKey = 'code';
     public $incrementing = false;
     protected $keyType = 'string';
+    public $timestamps = false;
 
     // Relação: Uma cor pode estar presente em muitos itens de encomendas
     public function orderItems()

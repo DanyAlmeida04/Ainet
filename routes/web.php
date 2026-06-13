@@ -23,8 +23,10 @@ Route::post('/cart/remove', [CartController::class, 'remove'])->name('cart.remov
 Route::post('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
 
 // Checkout / pagamento
-Route::get('/cart/payment', [OrderController::class, 'payment'])->name('cart.payment');
-Route::post('/cart/process-payment', [OrderController::class, 'processPayment'])->name('cart.processPayment');
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/cart/payment', [OrderController::class, 'payment'])->name('cart.payment');
+    Route::post('/cart/process-payment', [OrderController::class, 'processPayment'])->name('cart.processPayment');
+});
 
 Route::get('/checkout', function () {
     return redirect()->route('cart.payment');
@@ -51,6 +53,21 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     // Logout
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+    // Email verification routes
+    Route::get('/email/verify', function () {
+        return view('auth.verify-email');
+    })->name('verification.notice');
+
+    Route::get('/email/verify/{id}/{hash}', function (\Illuminate\Foundation\Auth\EmailVerificationRequest $request) {
+        $request->fulfill();
+        return redirect()->route('catalog.index')->with('success', 'E-mail verificado com sucesso! Já pode concluir a sua compra.');
+    })->middleware('signed')->name('verification.verify');
+
+    Route::post('/email/verification-notification', function (\Illuminate\Http\Request $request) {
+        $request->user()->sendEmailVerificationNotification();
+        return back()->with('success', 'Foi enviado um novo link de verificação para o seu e-mail.');
+    })->middleware('throttle:6,1')->name('verification.send');
 
     // Perfil do utilizador (visualizar/editar)
     Route::get('/profile', [AuthController::class, 'showProfile'])->name('profile.show');
@@ -143,6 +160,14 @@ Route::middleware(['auth', \App\Http\Middleware\IsAdmin::class])->prefix('admin'
     Route::get('/designs/{tshirt_image}/edit', [\App\Http\Controllers\Admin\TshirtImageController::class, 'edit'])->name('designs.edit');
     Route::post('/designs/{tshirt_image}', [\App\Http\Controllers\Admin\TshirtImageController::class, 'update'])->name('designs.update');
     Route::post('/designs/{tshirt_image}/destroy', [\App\Http\Controllers\Admin\TshirtImageController::class, 'destroy'])->name('designs.destroy');
+
+    // Colors management (CRUD)
+    Route::get('/colors', [\App\Http\Controllers\Admin\ColorController::class, 'index'])->name('colors.index');
+    Route::get('/colors/create', [\App\Http\Controllers\Admin\ColorController::class, 'create'])->name('colors.create');
+    Route::post('/colors', [\App\Http\Controllers\Admin\ColorController::class, 'store'])->name('colors.store');
+    Route::get('/colors/{color}/edit', [\App\Http\Controllers\Admin\ColorController::class, 'edit'])->name('colors.edit');
+    Route::post('/colors/{color}', [\App\Http\Controllers\Admin\ColorController::class, 'update'])->name('colors.update');
+    Route::post('/colors/{color}/destroy', [\App\Http\Controllers\Admin\ColorController::class, 'destroy'])->name('colors.destroy');
 });
 
 // TEMP DEBUG: show current authenticated user and gate checks (remove after debugging)
