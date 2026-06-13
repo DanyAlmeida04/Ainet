@@ -174,6 +174,7 @@
         <a href="/" class="text-2xl font-bold tracking-wider text-white">👕 Low Cortisol</a>
         <div class="flex items-center space-x-4">
             <a href="{{ route('catalog.index') }}" class="hover:underline text-white">Catálogo</a>
+            <a href="{{ route('profile.images.index') }}" class="hover:underline text-white">Personalizar T-shirt</a>
             <a href="{{ route('cart.index') }}" class="hover:underline text-white">Carrinho</a>
 
             <button id="themeToggle" title="Alternar tema claro/escuro" class="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-gray-200 text-sm font-medium transition-colors duration-200 hover:bg-gray-300" aria-pressed="false">

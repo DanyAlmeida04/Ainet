@@ -2,19 +2,23 @@
 
 @section('admin-content')
 
-    <div class="mt-4 flex flex-col items-center gap-3">
-        <div class="inline-flex bg-white rounded shadow p-2 border border-slate-100 dark:border-slate-800">
-            <button data-range="lifetime" class="rangeBtn px-3.5 py-1.5 bg-blue-50 rounded text-xs font-semibold cursor-pointer transition">Lifetime</button>
-            <button data-range="6months" class="rangeBtn px-3.5 py-1.5 ml-2 text-xs font-semibold cursor-pointer transition">6 Meses</button>
-            <button data-range="month" class="rangeBtn px-3.5 py-1.5 ml-2 text-xs font-semibold cursor-pointer transition">Mês</button>
-            <button data-range="week" class="rangeBtn px-3.5 py-1.5 ml-2 text-xs font-semibold cursor-pointer transition">Semana</button>
+    <div class="mt-4 flex flex-col items-center gap-4">
+        <div class="inline-flex bg-slate-100 dark:bg-slate-800/80 rounded-xl p-1.5 border border-slate-200/55 dark:border-slate-700/50">
+            <button data-range="lifetime" class="rangeBtn px-4 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer">Lifetime</button>
+            <button data-range="5months" class="rangeBtn px-4 py-2 ml-1 text-xs font-semibold rounded-lg transition-all cursor-pointer">5 Meses</button>
+            <button data-range="month" class="rangeBtn px-4 py-2 ml-1 text-xs font-semibold rounded-lg transition-all cursor-pointer">Mês</button>
+            <button data-range="week" class="rangeBtn px-4 py-2 ml-1 text-xs font-semibold rounded-lg transition-all cursor-pointer">Semana</button>
         </div>
 
         {{-- Navigator controls --}}
-        <div id="navControls" class="flex items-center gap-4 bg-white dark:bg-slate-900 rounded-xl shadow-sm px-4 py-2 border border-slate-200/60 dark:border-slate-800 hidden">
-            <button id="prevRangeBtn" class="px-3 py-1.5 text-xs text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 font-bold cursor-pointer transition hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">&larr; Anterior</button>
-            <span id="rangeDisplayLabel" class="text-xs font-bold text-slate-700 dark:text-slate-200 min-w-36 text-center"></span>
-            <button id="nextRangeBtn" class="px-3 py-1.5 text-xs text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 font-bold cursor-pointer transition hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">Seguinte &rarr;</button>
+        <div id="navControls" class="flex items-center gap-3 bg-white dark:bg-slate-900 rounded-2xl shadow-sm px-4 py-2.5 border border-slate-200/60 dark:border-slate-800 hidden">
+            <button id="prevRangeBtn" class="px-3.5 py-1.5 text-xs text-slate-600 hover:text-white hover:bg-blue-600 dark:text-slate-300 dark:hover:bg-blue-500 font-bold cursor-pointer transition rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-1">
+                <span>&larr;</span> Anterior
+            </button>
+            <span id="rangeDisplayLabel" class="text-xs font-black text-slate-800 dark:text-slate-100 min-w-44 text-center px-2 bg-slate-50 dark:bg-slate-950 py-1 rounded-lg border border-slate-100 dark:border-slate-900"></span>
+            <button id="nextRangeBtn" class="px-3.5 py-1.5 text-xs text-slate-600 hover:text-white hover:bg-blue-600 dark:text-slate-300 dark:hover:bg-blue-500 font-bold cursor-pointer transition rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-1">
+                Seguinte <span>&rarr;</span>
+            </button>
         </div>
     </div>
 
@@ -187,24 +191,48 @@
                      .catch(e=>{ console.error('Stats load error', e); if (errEl && !errEl.textContent) { errEl.textContent = 'Erro ao carregar estatísticas. Verifique a consola.'; errEl.classList.remove('hidden'); } });
              }
  
-              const rangeButtons = Array.from(document.querySelectorAll('.rangeBtn'));
-              rangeButtons.forEach(b=>{ b.addEventListener('click', function(){ rangeButtons.forEach(x=>x.classList.remove('bg-blue-50')); this.classList.add('bg-blue-50'); loadRange(this.dataset.range, 0); }); });
+               const rangeButtons = Array.from(document.querySelectorAll('.rangeBtn'));
+               const activeClasses = ['bg-blue-600', 'text-white', 'shadow-sm', 'dark:bg-blue-500'];
+               const inactiveClasses = ['text-slate-600', 'dark:text-slate-400', 'hover:bg-slate-50/60', 'dark:hover:bg-slate-800/60'];
 
-              // Bind navigator buttons
-              const prevBtn = document.getElementById('prevRangeBtn');
-              const nextBtn = document.getElementById('nextRangeBtn');
-              if (prevBtn) {
-                  prevBtn.addEventListener('click', function() {
-                      loadRange(currentRange, currentOffset - 1);
-                  });
-              }
-              if (nextBtn) {
-                  nextBtn.addEventListener('click', function() {
-                      loadRange(currentRange, currentOffset + 1);
-                  });
-              }
+               function setButtonActive(activeBtn) {
+                   rangeButtons.forEach(b => {
+                       if (b === activeBtn) {
+                           b.classList.add(...activeClasses);
+                           b.classList.remove(...inactiveClasses);
+                       } else {
+                           b.classList.remove(...activeClasses);
+                           b.classList.add(...inactiveClasses);
+                       }
+                   });
+               }
 
-              const defaultBtn = rangeButtons.find(b=>b.dataset.range==='lifetime') || rangeButtons[0]; if (defaultBtn) { defaultBtn.classList.add('bg-blue-50'); loadRange(defaultBtn.dataset.range, 0); }
+               rangeButtons.forEach(b => {
+                   b.addEventListener('click', function() {
+                       setButtonActive(this);
+                       loadRange(this.dataset.range, 0);
+                   });
+               });
+
+               // Bind navigator buttons
+               const prevBtn = document.getElementById('prevRangeBtn');
+               const nextBtn = document.getElementById('nextRangeBtn');
+               if (prevBtn) {
+                   prevBtn.addEventListener('click', function() {
+                       loadRange(currentRange, currentOffset - 1);
+                   });
+               }
+               if (nextBtn) {
+                   nextBtn.addEventListener('click', function() {
+                       loadRange(currentRange, currentOffset + 1);
+                   });
+               }
+
+               const defaultBtn = rangeButtons.find(b => b.dataset.range === 'lifetime') || rangeButtons[0];
+               if (defaultBtn) {
+                   setButtonActive(defaultBtn);
+                   loadRange(defaultBtn.dataset.range, 0);
+               }
          });
      </script>
  @endpush

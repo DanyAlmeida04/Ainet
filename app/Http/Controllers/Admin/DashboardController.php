@@ -79,8 +79,8 @@ class DashboardController extends Controller
                 $now->addWeeks($offset);
             } elseif ($range === 'month') {
                 $now->addMonths($offset);
-            } elseif ($range === '6months') {
-                $now->addMonths(6 * $offset);
+            } elseif ($range === '5months') {
+                $now->addMonths(5 * $offset);
             }
         }
 
@@ -104,12 +104,12 @@ class DashboardController extends Controller
                 $end = null;
                 $labels = null;
                 break;
-            case '6months':
+            case '5months':
             default:
-                $start = $now->copy()->startOfMonth()->subMonths(5);
+                $start = $now->copy()->startOfMonth()->subMonths(4);
                 $end = $now->copy()->endOfMonth();
                 $labels = [];
-                for ($i = 0; $i < 6; $i++) {
+                for ($i = 0; $i < 5; $i++) {
                     $m = $start->copy()->addMonths($i);
                     $labels[] = $m->format('M Y');
                 }
@@ -129,14 +129,14 @@ class DashboardController extends Controller
                 9 => 'Setembro', 10 => 'Outubro', 11 => 'Novembro', 12 => 'Dezembro'
             ];
             $rangeLabel = $monthsPt[$now->month] . ' ' . $now->year;
-        } elseif ($range === '6months') {
-            $startOf6 = $now->copy()->startOfMonth()->subMonths(5);
+        } elseif ($range === '5months') {
+            $startOf5 = $now->copy()->startOfMonth()->subMonths(4);
             $monthsPt = [
                 1 => 'Jan', 2 => 'Fev', 3 => 'Mar', 4 => 'Abr',
                 5 => 'Mai', 6 => 'Jun', 7 => 'Jul', 8 => 'Ago',
                 9 => 'Set', 10 => 'Out', 11 => 'Nov', 12 => 'Dez'
             ];
-            $rangeLabel = $monthsPt[$startOf6->month] . '/' . $startOf6->year . ' - ' . $monthsPt[$now->month] . '/' . $now->year;
+            $rangeLabel = $monthsPt[$startOf5->month] . '/' . $startOf5->year . ' - ' . $monthsPt[$now->month] . '/' . $now->year;
         } else {
             $rangeLabel = 'Histórico Completo';
         }
@@ -171,13 +171,13 @@ class DashboardController extends Controller
             $counts = $raw->pluck('cnt')->map(fn($v)=>(int)$v)->toArray();
             $sums = $raw->pluck('sum')->map(fn($v)=>(float)$v)->toArray();
         } else {
-            // 6months
+            // 5months
             $raw = Order::selectRaw("strftime('%Y-%m', date) as ym, count(*) as cnt, sum(total_price) as sum")
                 ->where('date', '>=', $start->toDateString())
                 ->where('date', '<=', $end->toDateString())
                 ->groupBy('ym')->orderBy('ym')->get()->keyBy('ym');
             $counts = [];$sums = [];
-            for ($i = 0; $i < 6; $i++) {
+            for ($i = 0; $i < 5; $i++) {
                 $m = $start->copy()->addMonths($i);
                 $k = $m->format('Y-m');
                 $counts[] = isset($raw[$k]) ? (int)$raw[$k]->cnt : 0;

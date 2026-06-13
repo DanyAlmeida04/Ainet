@@ -9,6 +9,31 @@
         @endcan
     </div>
 
+    @auth
+        @if(Auth::user()->user_type === 'C')
+            <div class="mb-6 p-4 md:p-6 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-2xl shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+                <div>
+                    <h3 class="text-lg font-bold">Queres usar a tua própria imagem?</h3>
+                    <p class="text-blue-100 text-xs md:text-sm mt-1">Carrega o teu design personalizado e cria uma t-shirt exclusiva com estampagem à tua escolha!</p>
+                </div>
+                <a href="{{ route('profile.images.index') }}" class="px-5 py-2.5 bg-white text-blue-700 hover:bg-blue-50 text-xs md:text-sm font-bold rounded-xl shadow transition shrink-0 hover:no-underline">
+                    🎨 Carregar Imagem
+                </a>
+            </div>
+        @endif
+    @else
+        <div class="mb-6 p-4 md:p-6 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4">
+            <div>
+                <h3 class="text-lg font-bold text-slate-800 dark:text-white">Queres usar a tua própria imagem?</h3>
+                <p class="text-slate-500 dark:text-slate-400 text-xs md:text-sm mt-1">Faz login ou regista-te para carregar os teus designs personalizados e estampar t-shirts exclusivas.</p>
+            </div>
+            <div class="flex gap-2 shrink-0">
+                <a href="{{ route('login') }}" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs md:text-sm font-bold rounded-xl shadow transition hover:no-underline">Entrar</a>
+                <a href="{{ route('register') }}" class="px-4 py-2 bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 text-xs md:text-sm font-bold rounded-xl transition hover:no-underline">Registar</a>
+            </div>
+        </div>
+    @endauth
+
     <div class="flex gap-6">
         {{-- Sidebar: lista de categorias --}}
         <aside class="w-64 bg-white rounded shadow p-4">

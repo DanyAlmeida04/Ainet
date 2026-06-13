@@ -24,7 +24,7 @@
                      class="w-full h-full object-contain pointer-events-none select-none transition-all duration-300">
                 
                 {{-- Catalog Design Overlay (absolute position on chest area) --}}
-                <img src="{{ asset('storage/tshirt_images/' . $tshirtImage->image_url) }}" 
+                <img src="{{ $tshirtImage->isPrivate() ? route('tshirt-images.private', ['filename' => $tshirtImage->image_url]) : asset('storage/tshirt_images/' . $tshirtImage->image_url) }}" 
                      alt="{{ $tshirtImage->name }}" 
                      class="absolute w-[36%] h-[36%] object-contain top-[28%] left-1/2 -translate-x-1/2 pointer-events-none select-none drop-shadow-sm opacity-90 transition-opacity">
             </div>
@@ -58,13 +58,13 @@
                 <div class="mb-6 p-4 bg-slate-50 dark:bg-slate-950/50 rounded-2xl border border-slate-100 dark:border-slate-800/80">
                     <div class="flex items-baseline gap-2">
                         <span class="text-3xl font-black text-slate-900 dark:text-white" id="displayed-price">
-                            €{{ number_format($priceConf->unit_price_catalog, 2) }}
+                            €{{ number_format($tshirtImage->isPrivate() ? $priceConf->unit_price_own : $priceConf->unit_price_catalog, 2) }}
                         </span>
                         <span class="text-sm text-slate-500 dark:text-slate-400">/ unidade</span>
                     </div>
                     @if(($priceConf->qty_discount ?? 0) > 0)
                         <div class="mt-2 text-xs text-green-600 dark:text-green-400 flex items-center gap-1 font-semibold">
-                            🏷️ Desconto de quantidade: compre {{ $priceConf->qty_discount }} ou mais unidades e pague apenas €{{ number_format($priceConf->unit_price_catalog_discount, 2) }} por cada!
+                            🏷️ Desconto de quantidade: compre {{ $priceConf->qty_discount }} ou mais unidades e pague apenas €{{ number_format($tshirtImage->isPrivate() ? $priceConf->unit_price_own_discount : $priceConf->unit_price_catalog_discount, 2) }} por cada!
                         </div>
                     @endif
                 </div>
@@ -180,8 +180,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const discountBadge = document.getElementById('discount-badge');
 
     // Fetch values safely from configuration
-    const unitPrice = parseFloat('{{ $priceConf->unit_price_catalog ?? 10.0 }}');
-    const discountPrice = parseFloat('{{ $priceConf->unit_price_catalog_discount ?? 8.5 }}');
+    const unitPrice = parseFloat('{{ $tshirtImage->isPrivate() ? ($priceConf->unit_price_own ?? 10.0) : ($priceConf->unit_price_catalog ?? 10.0) }}');
+    const discountPrice = parseFloat('{{ $tshirtImage->isPrivate() ? ($priceConf->unit_price_own_discount ?? 8.5) : ($priceConf->unit_price_catalog_discount ?? 8.5) }}');
     const discountThreshold = parseInt('{{ $priceConf->qty_discount ?? 10 }}');
 
     function updatePrice() {
