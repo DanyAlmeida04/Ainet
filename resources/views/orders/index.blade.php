@@ -2,44 +2,155 @@
 
 @section('content')
 <div class="container mx-auto px-4 py-8">
-    <h1 class="text-2xl font-bold mb-6">As Minhas Encomendas</h1>
 
+    {{-- Alert Success Notification --}}
     @if(session('success'))
-        <div class="bg-green-100 text-green-700 p-3 rounded mb-4">{{ session('success') }}</div>
+        <div class="mb-6 flex items-center gap-3 p-4 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-800 dark:text-emerald-300 rounded-xl border border-emerald-200/60 dark:border-emerald-900/60 shadow-sm animate-fade-in">
+            <svg class="w-5 h-5 flex-shrink-0 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span class="text-sm font-semibold">{{ session('success') }}</span>
+        </div>
     @endif
 
-    @if($orders->count() == 0)
-        <div class="bg-yellow-100 p-4 rounded">Ainda não tem encomendas.</div>
-    @else
-        <div class="space-y-4">
-            @foreach($orders as $order)
-                <div class="bg-white p-4 rounded shadow flex items-center justify-between">
-                    <div>
-                        <div class="font-semibold">Encomenda #{{ $order->id }} - {{ $order->status }}</div>
-                        <div class="text-sm text-gray-600">Data: {{ $order->date->format('Y-m-d') }} - Total: €{{ number_format($order->total_price, 2) }}</div>
-                    </div>
-                    <div class="flex gap-2">
-                        <a href="{{ route('orders.preview', $order) }}" target="_blank" class="bg-gray-500 text-white px-3 py-1 rounded">Preview Recibo</a>
+    @if($errors->any())
+        <div class="mb-6 p-4 bg-rose-50 dark:bg-rose-950/20 text-rose-800 dark:text-rose-300 rounded-xl border border-rose-200/60 dark:border-rose-900/60 shadow-sm">
+            <ul class="list-disc list-inside text-xs space-y-1">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
 
-                        @if($order->receipt_url)
-                            <a href="{{ route('orders.receipt', $order) }}" target="_blank" class="bg-blue-600 text-white px-3 py-1 rounded">Ver Recibo</a>
-                            <form action="{{ route('orders.resendReceipt', $order) }}" method="POST" class="resend-form inline">
-                                @csrf
-                                <button type="submit" class="bg-gray-500 text-white px-3 py-1 rounded">Reenviar Recibo</button>
-                            </form>
-                        @else
-                            <form action="{{ route('orders.resendReceipt', $order) }}" method="POST">
-                                @csrf
-                                <button type="submit" class="bg-green-600 text-white px-3 py-1 rounded">Gerar e Enviar Recibo</button>
-                            </form>
-                        @endif
-                    </div>
-                </div>
-            @endforeach
+    <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-800 overflow-hidden mb-6">
+        <div class="p-6 border-b border-slate-200/60 dark:border-slate-800">
+            <h2 class="text-2xl font-bold text-slate-800 dark:text-white">As Minhas Encomendas</h2>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Acompanhe o estado das suas encomendas e aceda aos seus recibos.</p>
         </div>
 
-        <div class="mt-6">{{ $orders->links() }}</div>
-    @endif
-</div>
+        @if($orders->count() == 0)
+            <div class="p-12 text-center text-slate-500 dark:text-slate-400">
+                <svg class="w-12 h-12 mx-auto text-slate-300 dark:text-slate-650 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+                <p class="text-base font-semibold">Ainda não tem encomendas.</p>
+                <p class="text-xs text-slate-400 mt-1">Visite o nosso catálogo para configurar e comprar as suas t-shirts!</p>
+                <a href="{{ route('catalog.index') }}" class="inline-flex items-center gap-1.5 bg-blue-600 text-white font-semibold py-2 px-4 rounded-xl text-xs hover:bg-blue-700 transition mt-4 shadow-sm">
+                    Ir para o Catálogo
+                </a>
+            </div>
+        @else
+            {{-- Orders Table --}}
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50 dark:bg-slate-800/30 border-b border-slate-100 dark:border-slate-800/60">
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-24">ID</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-36">Data</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Artigos</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-32">Total</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-36">Estado</th>
+                            <th class="px-6 py-4 text-center text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-56">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60">
+                        @foreach($orders as $order)
+                            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10 transition-colors duration-100">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-slate-600 dark:text-slate-355">
+                                    #{{ $order->id }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-slate-300">
+                                    {{ $order->date->format('d/m/Y') }}
+                                </td>
+                                <td class="px-6 py-4">
+                                    {{-- List order items visual thumbnails --}}
+                                    <div class="flex items-center gap-1.5 flex-wrap">
+                                        @foreach($order->items->take(4) as $it)
+                                            <div class="relative w-9 h-9 bg-slate-50 dark:bg-slate-850 rounded-lg border border-slate-200/60 dark:border-slate-700/60 flex items-center justify-center p-0.5 overflow-hidden shadow-sm" title="{{ $it->tshirtImage->name ?? 'Imagem Personalizada' }} (Tam: {{ $it->size }}, Qtd: {{ $it->qty }})">
+                                                @if($it->color_code)
+                                                    <img src="{{ asset('storage/tshirt_base/' . $it->color_code . '.jpg') }}" class="w-full h-full object-contain pointer-events-none select-none">
+                                                @endif
+                                                @if($it->tshirtImage && $it->tshirtImage->image_url)
+                                                    <img src="{{ $it->tshirtImage->isPrivate() ? route('tshirt-images.private', ['filename' => $it->tshirtImage->image_url]) : asset('storage/tshirt_images/' . $it->tshirtImage->image_url) }}" class="absolute w-[36%] h-[36%] object-contain top-[28%] left-1/2 -translate-x-1/2 pointer-events-none select-none drop-shadow-sm opacity-95">
+                                                @else
+                                                    <div class="absolute inset-0 flex items-center justify-center bg-slate-250/10 text-[6px] text-slate-400 font-bold">Custom</div>
+                                                @endif
+                                            </div>
+                                        @endforeach
+                                        @if($order->items->count() > 4)
+                                            <span class="text-xs text-slate-400 font-semibold pl-1">+{{ $order->items->count() - 4 }}</span>
+                                        @endif
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-slate-800 dark:text-white">
+                                    {{ number_format($order->total_price, 2) }} €
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    @if($order->status === 'closed')
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/40">
+                                            Fechada
+                                        </span>
+                                    @elseif($order->status === 'canceled')
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 dark:bg-rose-950/30 dark:text-rose-400 border border-rose-100 dark:border-rose-900/40">
+                                            Anulada
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400 border border-amber-100 dark:border-amber-900/40 animate-pulse">
+                                            Pendente
+                                        </span>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-semibold">
+                                    <div class="flex items-center justify-center gap-1">
+                                        {{-- View details eye icon --}}
+                                        <a href="{{ route('orders.show', $order) }}" class="inline-flex items-center justify-center p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition" title="Ver Detalhes da Encomenda">
+                                            <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                            </svg>
+                                        </a>
 
+                                        {{-- PDF Receipt Download --}}
+                                        @if($order->receipt_url)
+                                            <a href="{{ route('orders.receipt', $order) }}" target="_blank" class="inline-flex items-center justify-center p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-emerald-600 dark:hover:text-emerald-400 transition" title="Descarregar Recibo PDF">
+                                                <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                                </svg>
+                                            </a>
+                                        @endif
+
+                                        {{-- Preview Receipt --}}
+                                        <a href="{{ route('orders.preview', $order) }}" target="_blank" class="inline-flex items-center justify-center p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-indigo-600 dark:hover:text-indigo-400 transition" title="Visualizar Recibo no Navegador">
+                                            <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                            </svg>
+                                        </a>
+
+                                        {{-- Generate/Resend Receipt Mails --}}
+                                        <form action="{{ route('orders.resendReceipt', $order) }}" method="POST" class="inline">
+                                            @csrf
+                                            <button type="submit" class="inline-flex items-center justify-center p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-rose-600 dark:hover:text-rose-455 transition cursor-pointer" title="{{ $order->receipt_url ? 'Reenviar Recibo por Email' : 'Gerar e Enviar Recibo por Email' }}">
+                                                <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                                </svg>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            {{-- Pagination --}}
+            @if(method_exists($orders, 'links'))
+                <div class="px-6 py-4 bg-slate-50 dark:bg-slate-800/10 border-t border-slate-100 dark:border-slate-800/60 pagination-clean">
+                    {{ $orders->links() }}
+                </div>
+            @endif
+        @endif
+    </div>
+</div>
 @endsection

@@ -137,8 +137,16 @@ class OrderController extends Controller
     // List orders for authenticated customer
     public function index()
     {
-        $orders = Order::where('customer_id', Auth::id())->with('items')->orderBy('date', 'desc')->paginate(12);
+        $orders = Order::where('customer_id', Auth::id())->with('items.tshirtImage')->orderBy('date', 'desc')->paginate(12);
         return view('orders.index', compact('orders'));
+    }
+
+    // Show single order details for authenticated customer
+    public function show(Order $order)
+    {
+        $this->authorize('view', $order);
+        $order->load('items.tshirtImage');
+        return view('orders.show', compact('order'));
     }
 
     // Resend receipt email
@@ -181,8 +189,9 @@ class OrderController extends Controller
     {
         $this->authorize('view', $order);
 
-        // Ensure the authenticated user owns the order
-        if ($order->customer_id !== Auth::id()) {
+        // Ensure the authenticated user is the owner, an administrator, or an employee
+        $user = Auth::user();
+        if ($user->user_type !== 'A' && $user->user_type !== 'E' && $order->customer_id !== $user->id) {
             abort(403);
         }
 
