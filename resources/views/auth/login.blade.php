@@ -26,9 +26,14 @@
                    class="mt-1 w-full border border-gray-300 rounded px-3 py-2">
         </div>
 
-        <div class="flex items-center">
-            <input type="checkbox" name="remember" id="remember" class="mr-2">
-            <label Soluções para "remember" class="text-sm text-gray-600" for="remember">Lembrar-me neste computador</label>
+        <div class="flex items-center justify-between">
+            <div class="flex items-center">
+                <input type="checkbox" name="remember" id="remember" class="mr-2">
+                <label class="text-sm text-gray-600" for="remember">Lembrar-me neste computador</label>
+            </div>
+            <a href="{{ route('password.request') }}" class="text-sm text-blue-600 hover:underline">
+                Esqueceu-se da palavra-passe?
+            </a>
         </div>
 
         <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded font-semibold cursor-pointer transition hover:underline hover:bg-blue-700">
