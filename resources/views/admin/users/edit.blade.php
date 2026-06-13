@@ -18,7 +18,7 @@
         <div>
             <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Nome Completo</label>
             <input type="text" name="name" value="{{ old('name', $user->name) }}" required
-                   class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-slate-250">
+                   class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-slate-250">
             @error('name')
                 <p class="text-xs text-red-500 mt-1.5">{{ $message }}</p>
             @enderror
@@ -27,7 +27,7 @@
         <div>
             <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Endereço de Email</label>
             <input type="email" name="email" value="{{ old('email', $user->email) }}" required
-                   class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-slate-250">
+                   class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-slate-250">
             @error('email')
                 <p class="text-xs text-red-500 mt-1.5">{{ $message }}</p>
             @enderror
@@ -35,7 +35,7 @@
 
         <div>
             <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Tipo de Utilizador</label>
-            <select name="user_type" class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-slate-250">
+            <select name="user_type" class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-slate-250">
                 <option value="C" {{ old('user_type', $user->user_type) == 'C' ? 'selected' : '' }}>Cliente</option>
                 <option value="E" {{ old('user_type', $user->user_type) == 'E' ? 'selected' : '' }}>Funcionário</option>
                 <option value="A" {{ old('user_type', $user->user_type) == 'A' ? 'selected' : '' }}>Administrador</option>

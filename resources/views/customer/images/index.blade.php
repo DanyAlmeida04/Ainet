@@ -38,13 +38,13 @@
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Nome do Design</label>
                         <input type="text" name="name" value="{{ old('name') }}" placeholder="Ex: Minha Foto, Logótipo Banda..." required
-                               class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-slate-200">
+                               class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-slate-200">
                     </div>
 
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Descrição (Opcional)</label>
                         <textarea name="description" placeholder="Uma breve descrição sobre a imagem..." rows="3"
-                                  class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-slate-200"></textarea>
+                                  class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-slate-200"></textarea>
                     </div>
 
                     <div>

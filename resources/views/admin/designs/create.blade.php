@@ -26,18 +26,18 @@
             <div>
                 <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Nome do Design *</label>
                 <input type="text" name="name" value="{{ old('name') }}" placeholder="Ex: Caveira Retro, Sunset Beach..." required
-                       class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+                       class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-slate-200">
             </div>
 
             <div>
                 <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Descrição</label>
                 <textarea name="description" placeholder="Uma breve descrição sobre este design..." rows="4"
-                          class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">{{ old('description') }}</textarea>
+                          class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-slate-200">{{ old('description') }}</textarea>
             </div>
 
             <div>
                 <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Categoria</label>
-                <select name="category_id" class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <select name="category_id" class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-slate-200">
                     <option value="">Sem Categoria (Nenhuma)</option>
                     @foreach($categories as $cat)
                         <option value="{{ $cat->id }}" {{ old('category_id') == $cat->id ? 'selected' : '' }}>

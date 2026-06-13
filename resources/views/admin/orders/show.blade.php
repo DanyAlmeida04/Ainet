@@ -317,7 +317,7 @@
                             Motivo da Anulação (Opcional)
                         </label>
                         <input name="reason" placeholder="Ex: Artigo indisponível, falta de pagamento..."
-                               class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-rose-500 dark:text-slate-250">
+                               class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-rose-500 text-slate-900 dark:text-slate-250">
                     </div>
                     <button class="w-full flex items-center justify-center gap-1.5 bg-rose-50 border border-rose-250 text-rose-700 hover:bg-rose-100 font-semibold py-2.5 px-4 rounded-xl text-sm transition cursor-pointer dark:bg-rose-950/20 dark:border-rose-900/60 dark:text-rose-450 dark:hover:bg-rose-950/40">
                         <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

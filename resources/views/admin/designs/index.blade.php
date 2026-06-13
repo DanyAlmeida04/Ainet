@@ -24,10 +24,10 @@
         <form action="{{ route('admin.designs.index') }}" method="GET" class="flex flex-col md:flex-row gap-3">
             <div class="flex-1">
                 <input type="text" name="search" value="{{ request('search') }}" placeholder="Pesquisar por nome ou descrição..." 
-                       class="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+                       class="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-slate-200">
             </div>
             <div class="w-full md:w-48">
-                <select name="category" class="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <select name="category" class="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-slate-200">
                     <option value="">Todas as Categorias</option>
                     @foreach($categories as $cat)
                         <option value="{{ $cat->id }}" {{ request('category') == $cat->id ? 'selected' : '' }}>

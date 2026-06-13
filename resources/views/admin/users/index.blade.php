@@ -25,12 +25,12 @@
             <div>
                 <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Procurar</label>
                 <input type="text" name="search" placeholder="Nome ou Email..." value="{{ request('search') }}"
-                       class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-slate-200">
+                       class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-slate-200">
             </div>
 
             <div>
                 <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Tipo de Utilizador</label>
-                <select name="user_type" class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-slate-200">
+                <select name="user_type" class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-slate-200">
                     <option value="">Todos os Tipos</option>
                     <option value="C" {{ request('user_type') === 'C' ? 'selected' : '' }}>Cliente</option>
                     <option value="E" {{ request('user_type') === 'E' ? 'selected' : '' }}>Funcionário</option>
@@ -40,7 +40,7 @@
 
             <div>
                 <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Estado</label>
-                <select name="blocked" class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-slate-200">
+                <select name="blocked" class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-slate-200">
                     <option value="">Todos os Estados</option>
                     <option value="0" {{ request('blocked') === '0' ? 'selected' : '' }}>Ativo</option>
                     <option value="1" {{ request('blocked') === '1' ? 'selected' : '' }}>Bloqueado</option>
